@@ -1,4 +1,4 @@
-<!--META {"title":"Sign in — optional cloud sync · Fitwise","desc":"Fitwise works without an account. Sign in only if you want your resumes to sync across devices.","path":"/signin","scripts":"<script src=\"/fw-signin.js\" defer></script>"}-->
+<!--META {"title":"Sign in — optional cloud sync · Fitwise","desc":"Fitwise works without an account. Sign in only if you want your resumes to sync across devices.","path":"/signin","scripts":"<script src=\"https://accounts.google.com/gsi/client\" async defer onload=\"window.fwGsiReady&&window.fwGsiReady()\"></script><script src=\"/fw-signin.js\" defer></script>"}-->
 <section class="sec">
   <div class="wrap narrow">
     <div class="card" style="padding:32px">
@@ -7,7 +7,14 @@
       <p class="muted">Sign-in is optional. The resume builder and ATS checker work without an account. Signing in enables cloud sync for resumes across your devices.</p>
       <div id="signedIn" class="notice ok hide"></div>
       <div id="signForm">
-        <div class="fld" style="margin-top:18px">
+        <div id="googleAuth" style="margin-top:20px">
+          <div id="googleBtn" style="display:flex;justify-content:center;min-height:44px"></div>
+          <p id="googleMsg" class="small muted" role="status" aria-live="polite" style="text-align:center;margin:8px 0 0">Loading Google sign-in…</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--mut);font-size:.85rem">
+          <span style="height:1px;background:var(--line);flex:1"></span><span>or use email</span><span style="height:1px;background:var(--line);flex:1"></span>
+        </div>
+        <div class="fld">
           <label for="emIn">Email address</label>
           <input type="email" id="emIn" placeholder="you@example.com" autocomplete="email">
         </div>
@@ -17,8 +24,7 @@
             <input type="text" id="codeIn" inputmode="numeric" maxlength="6" placeholder="123456" autocomplete="one-time-code"></div>
           <button class="btn block" type="button" id="codeGo">Verify &amp; sign in</button>
         </div>
-        <p id="signMsg" class="small" style="margin:12px 0 0"></p>
-        
+        <p id="signMsg" class="small" role="status" aria-live="polite" style="margin:12px 0 0"></p>
         <p class="small muted">Email verification is available only when email delivery is configured. If sign-in is unavailable, continue using the resume builder and ATS checker without an account.</p>
       </div>
       <div class="btn-row" style="margin-top:20px">
