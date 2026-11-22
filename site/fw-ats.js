@@ -119,6 +119,7 @@ function init(){
   function scan(){
     var text = (cv.value||"").trim();
     if(text.length < 60){ FW.toast("Paste your resume text, or drop a PDF/DOCX first"); cv.focus(); return; }
+    if(text.length > 50000){ FW.toast("Keep the resume under 50,000 characters for a reliable scan."); cv.focus(); return; }
     btn.classList.add("is-busy"); btn.innerHTML = '<span class="spin"></span> Scanning…';
     state.text = text;
     var r = FW.atsScan({text:text, jd:(jd.value||"").trim(), filename: state.filename});
