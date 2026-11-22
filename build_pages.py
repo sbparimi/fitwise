@@ -89,93 +89,79 @@ PRICING = """<section class="phero"><div class="wrap">
 PRIVACY = """<article class="wrap prose">
 <p class="eyebrow">Legal</p>
 <h1>Privacy policy</h1>
-<p class="muted">Last updated: 1 November 2026</p>
-<p>This page explains what Fitwise collects when you use it, why, how long it's kept, and how to have it deleted. It describes how the service actually works today.</p>
-<h2>In short</h2>
+<p class="muted">Last updated: 22 November 2026</p>
+<p>This policy describes how Fitwise handles information when you use the resume builder and ATS-style checker. Fitwise's operator identity and business contact details must be completed in this policy before public commercial launch.</p>
+<h2>Resume builder</h2>
+<p>The core builder reads PDF, DOCX and TXT files in your browser. Resume editing and autosave use your browser's local storage. Your resume is not uploaded just because you open or edit it. Clearing browser storage or using a different browser/device can remove or make that local copy unavailable.</p>
+<h2>ATS-style checker and share links</h2>
+<p>The checker analyses the resume text in your browser. If you choose to create a shareable report, Fitwise receives and stores the generated report, the file name and the report date. The resume text and job description are not stored in the shareable report. Shareable reports are retained for up to 30 days and then deleted.</p>
+<h2>Optional account and cloud sync</h2>
+<p>Account sign-in is optional for the core builder and checker. If you choose to sign in and use cloud sync, Fitwise stores the account identifier and email address, session information, and the resume documents and template settings you choose to sync. Synced content remains until you delete it or request account deletion. The account area provides the available data-management controls.</p>
+<h2>Optional AI features</h2>
+<p>If an AI enhancement feature is enabled and you choose to use it, the relevant resume text, bullet or job-description excerpt is sent to the AI provider configured for Fitwise so it can return the requested result. The configured provider may process that content under its own terms and privacy policy. The core resume editor and rule-based ATS checks do not require an AI provider.</p>
+<h2>Usage and security information</h2>
+<p>Fitwise uses first-party operational analytics to understand page visits and product actions. This can include page paths, referring site, campaign parameters, device and browser category, approximate country, and actions such as sign-in or report creation. A random first-party visitor identifier is stored in a cookie. Detailed event records are retained for up to 90 days and may then be kept only as aggregated totals. Fitwise does not use third-party advertising trackers.</p>
+<h2>Contact messages</h2>
+<p>If you submit the contact form, Fitwise stores the name and email address you provide, the topic and message so the team can respond. Data requests can be submitted through the <a href="/contact">contact page</a>.</p>
+<h2>Where information is processed</h2>
+<p>The production application uses Cloudflare Workers and a Cloudflare D1 database. If optional AI features are enabled, the configured AI provider also processes the content required for that feature. Depending on the provider and service configuration, processing may occur outside your country or the European Economic Area.</p>
+<h2>Retention and deletion</h2>
 <ul>
-<li>To use the app pages (jobs, job pages, the tailoring tool, events, pricing) you <b>sign in with Google</b>. We store your Google account ID, <b>email and name</b> to create your free account.</li>
-<li>The <b>CV you tailor</b> (the file you upload, or the text you paste) is <b>stored on our server for 90 days</b>, then deleted automatically. You can delete it, or your whole account, any time on your <a href="/account">Your data</a> page. The job ad text is not saved.</li>
-<li>We keep <b>first-party usage statistics</b>: which pages you open, how you arrived, your device type and actions such as Apply clicks and tailorings. No third-party analytics or advertising trackers.</li>
-<li>We keep your <b>email</b>, your <b>credit balance</b> and a small record of each tailoring (job title and company, plus a fingerprint of the result) so that a paid download matches what you previewed.</li>
-<li>The generated <b>cover letter</b> is kept for <b>14 days</b> so you can unlock it, then deleted.</li>
-<li>Tailoring runs on our own rules engine. Your text is <b>not sent to any AI service</b> today.</li>
-<li>No advertising trackers. We don't sell or share your data.</li>
+<li>Local resumes: until you delete them or clear your browser storage.</li>
+<li>Shareable ATS reports: up to 30 days.</li>
+<li>Cloud-synced resumes and account data: until you delete the content or request account deletion.</li>
+<li>Detailed first-party analytics: up to 90 days, followed by aggregated totals where applicable.</li>
+<li>Contact messages: until the request has been handled and no longer needs to be retained.</li>
 </ul>
-<h2>What we collect and why</h2>
-<table class="ptbl"><thead><tr><th>Data</th><th>Why</th><th>How long</th></tr></thead><tbody>
-<tr><td>Job ad text</td><td>To create your tailored CV, match score and cover letter</td><td>Not stored. Used only while your request runs.</td></tr>
-<tr><td>The CV you tailor: the file you upload (PDF, Word or text) or the text you paste, with its file name, size, upload time and the job it was tailored for</td><td>Your file is read in your browser to keep your layout. After a tailoring, a copy is stored so there is a record of what was tailored, so we can help you if something went wrong, and to improve Fitwise. Only the Fitwise team can open it; it is never shown to other users or shared.</td><td>90 days, then deleted automatically. Delete it sooner on your <a href="/account">Your data</a> page.</td></tr>
-<tr><td>Email address</td><td>To link your credits and results to you, and to email you if you join a waitlist or the daily jobs list</td><td>Until you ask us to delete it</td></tr>
-<tr><td>Tailoring record: job title and company, a random ID, a fingerprint (hash) of the result, date</td><td>So a paid download matches the preview, and re-downloads stay free</td><td>Until you ask us to delete it</td></tr>
-<tr><td>Generated cover letter</td><td>So you can unlock the full letter later</td><td>14 days, then deleted</td></tr>
-<tr><td>Credit balance and history</td><td>To know how many credits you have</td><td>Until you ask us to delete it</td></tr>
-<tr><td>Daily usage counters (per email, per browser, and a shortened one-way hash of your IP address)</td><td>Fair-use limits and abuse prevention</td><td>About 2 days</td></tr>
-<tr><td>Pre-launch counter (one-way hash of your email, your Google account ID, and the random browser ID)</td><td>To apply the 1-free-tailoring pre-launch limit</td><td>Until launch, or deletion on request</td></tr>
-<tr><td>A random browser ID in your browser's local storage, and your email if you entered it</td><td>To apply fair-use limits and prefill your email next time</td><td>Until you clear your browser data</td></tr>
-<tr><td>Google sign-in: your Google account ID, email, name and profile-picture link, sign-up date, last sign-in and number of sign-ins</td><td>To create your free Fitwise account. Sign-in is needed for the jobs list, job pages, the tailoring tool, Conferences &amp; Workshops and pricing.</td><td>Until you delete your account or ask us to</td></tr>
-<tr><td>Usage statistics (first-party): pages you open and when, the referring site, UTM campaign tags in the link, device type, operating system and browser (read from your browser's user agent), your country (looked up from your connection; the IP address itself is not stored), and actions: sign-in started/completed/failed, job viewed, Apply clicked (which job), tailoring started/finished, downloads, cover letters, sign-out. Linked to your account once you sign in.</td><td>To understand how people find and use Fitwise and to improve it. Recorded on our own server; no third-party analytics.</td><td>Detailed records 90 days, then only daily totals without any personal link</td></tr>
-<tr><td>A visitor cookie (a random ID, fw_vid)</td><td>To count visits and link the visits before sign-in to your account</td><td>1 year</td></tr>
-<tr><td>A sign-in cookie (random session token)</td><td>To keep you signed in</td><td>30 days, or until you sign out</td></tr>
-<tr><td>Messages you send through the contact form</td><td>To answer you</td><td>Until handled, then deleted on request</td></tr>
-<tr><td>Email update list (closed; no new sign-ups are taken): your email, the page you signed up on and the date</td><td>To send the one update email you asked for</td><td>Until you ask us to remove it</td></tr>
-</tbody></table>
-<h2>Where it's stored</h2>
-<p>Fitwise runs on Cloudflare (Workers and a D1 database). Data is processed and stored on Cloudflare's network. Job pages you link to are fetched from the job site to read the ad.</p>
-<h2>AI processing</h2>
-<p>Today, Fitwise does not send your CV to any AI provider. If that changes, we'll update this page first and say so in the tool before your text is sent.</p>
-<h2>Payments</h2>
-<p>Payments are not live yet. When they open, card details will be handled by the payment provider and never stored by Fitwise.</p>
-<h2>Cookies</h2>
-<p>Fitwise sets no advertising cookies and uses no third-party analytics. It sets two first-party cookies: a random visitor ID (fw_vid, 1 year) for its own usage statistics, and, when you sign in with Google, a sign-in cookie (a random token, no personal data in it, 30 days). It also uses your browser's local storage for the random browser ID and your email, as described above. Google's sign-in button is loaded from Google and follows <a href="https://policies.google.com/privacy" rel="noopener">Google's privacy policy</a>.</p>
-<h2>Your rights</h2>
-<p>On your <a href="/account">Your data</a> page (after sign-in) you can delete your stored CVs, or delete your account and everything linked to it (stored CVs, credits and history, tailoring records, cover letters, usage records), at any time. You can also ask for a copy of your data, a correction, or deletion from the <a href="/contact">contact page</a> with the email you used. We delete it and confirm. If you're in the EU or UK, you also have the right to complain to your data protection authority.</p>
+<p>You can delete local resumes from the builder or dashboard where available. For cloud data, account deletion or a copy/correction request, use the <a href="/contact">contact page</a>. If you are in the EU or UK, you may also have rights to access, rectify, erase, restrict or object to certain processing, and to complain to your data protection authority.</p>
+<h2>Cookies and local storage</h2>
+<p>Fitwise uses a first-party visitor cookie for its own analytics and a session cookie when you sign in. The builder uses browser local storage for your resumes and settings. Fitwise does not use advertising cookies or third-party analytics cookies.</p>
 <h2>Children</h2>
-<p>Fitwise is meant for job seekers aged 16 and over.</p>
+<p>Fitwise is intended for job seekers aged 16 and over.</p>
 <h2>Changes</h2>
-<p>If this policy changes, the date at the top changes too. Material changes will be announced on the site.</p>
+<p>Material changes to this policy will be reflected here with an updated date.</p>
 </article>"""
 
 TERMS = """<article class="wrap prose">
 <p class="eyebrow">Legal</p>
 <h1>Terms of use</h1>
-<p class="muted">Last updated: 1 November 2026</p>
-<p>Fitwise is an early-access service. By using it you agree to these terms. The legal entity that operates Fitwise will be named on this page before paid credit packs open.</p>
+<p class="muted">Last updated: 22 November 2026</p>
+<p>These terms apply when you use Fitwise's resume builder, templates, document exports and ATS-style resume checker.</p>
 <h2>What Fitwise does</h2>
-<p>Fitwise reorders the content of your CV to match a job ad, shows a match score and keywords, writes a cover letter draft from your CV, and offers your CV in other country formats. It works with what is already in your CV; it doesn't add employers, titles, dates, skills or numbers.</p>
+<p>Fitwise lets you create and edit a structured resume, preview it in selected templates, export PDF or DOCX files, and run deterministic checks for common resume formatting, structure, readability and job-description keyword issues.</p>
+<h2>What the ATS-style score means</h2>
+<p>The score is a diagnostic generated by Fitwise's own rules. Fitwise is not certified by, integrated with or endorsed by Workday, Greenhouse, Lever, iCIMS, Taleo or any other applicant tracking system. A score does not guarantee that an employer's system will parse, rank or accept your resume, or that you will receive an interview or job offer.</p>
 <h2>Your responsibilities</h2>
 <ul>
-<li>Only upload a CV that is yours, or that you have permission to use.</li>
-<li>Check every result before you send it. You are responsible for what you submit to employers.</li>
-<li>Don't misuse the service: no automated bulk use beyond the fair-use limits, no attempts to break or overload it.</li>
+<li>Only upload or process documents that belong to you or that you have permission to use.</li>
+<li>Review every resume and exported document before sending it to an employer.</li>
+<li>Check that all personal details, dates, qualifications, skills and achievements are accurate.</li>
+<li>Do not misuse the service, attempt to disrupt it or exceed reasonable usage limits.</li>
 </ul>
-<h2>No guarantees</h2>
-<p>A match score is an estimate based on keywords and wording. Fitwise does not guarantee interviews, offers or how any employer or applicant tracking system will treat your CV. The service is provided "as is" during early access and may change or be unavailable at times.</p>
-<h2>Free use and credits</h2>
-<p>Tailoring in your own format is free to try. During pre-launch each person gets 1 free tailoring (counted per email and per browser); after launch a fair-use limit applies. Extra formats and full cover letters use prepaid credits. Credit payments are not live yet; when they open, prices are shown before you pay, credits don't expire, and nothing renews automatically.</p>
-<h2>Daily jobs list</h2>
-<p>The jobs on the <a href="/jobs">daily jobs page</a> are collected from public company career pages and job boards. Fitwise is not the employer and is not affiliated with them. "Visa sponsorship ✅" means the ad mentions visa or relocation support, or (in the Netherlands) the employer is on the IND public register of recognised sponsors; always confirm with the employer.</p>
-<h2>Your content</h2>
-<p>Your CV stays yours. You give Fitwise permission to process it only to produce your results. See the <a href="/privacy">privacy policy</a> for what is kept.</p>
-<h2>Liability</h2>
-<p>To the extent the law allows, Fitwise is not liable for indirect losses or for decisions made by employers. Nothing in these terms limits rights you have under consumer law.</p>
+<h2>Your content and storage</h2>
+<p>Your resume remains yours. The core builder stores working copies in your browser. If you choose optional cloud sync, your synced resume is stored against your account. If you create an ATS share link, the report and file name are retained for up to 30 days; the resume text and job description are not stored in that report. See the <a href="/privacy">privacy policy</a> for details.</p>
+<h2>Availability and liability</h2>
+<p>Fitwise is provided on an early-access basis and may change or be unavailable at times. You are responsible for checking the accuracy and suitability of every result. To the extent permitted by law, Fitwise is not liable for indirect losses or employer decisions. Nothing in these terms limits rights you have under applicable consumer law.</p>
+<h2>Payments</h2>
+<p>Payments are not enabled for the resume builder and ATS-style checker at this time. No payment is taken through the core launch workflows.</p>
 <h2>Contact</h2>
-<p>Questions about these terms: <a href="/contact">contact us</a>.</p>
+<p>Questions about these terms: use the <a href="/contact">contact page</a>.</p>
 </article>"""
 
 ABOUT = """<article class="wrap prose">
 <p class="eyebrow">About</p>
-<h1>Why Fitwise exists</h1>
-<p class="lead">Recruiters and applicant tracking systems look for the words in the job ad. Most people send the same CV everywhere, and many CV tools "fix" that by inventing skills. Fitwise does the opposite.</p>
-<h2>What we believe</h2>
+<h1>Make your resume clearer and easier to improve</h1>
+<p class="lead">Fitwise combines a practical resume editor with a transparent, rule-based review. The aim is to help job seekers improve the clarity, structure and relevance of their resumes without inventing experience.</p>
+<h2>The core tools</h2>
 <ul>
-<li><b>Your CV, your format.</b> You spent time on your layout. Fitwise keeps it: your Word file is edited in place, your PDF is rebuilt in the same style.</li>
-<li><b>Nothing made up.</b> Fitwise reorders what you already wrote so the most relevant experience comes first. Keywords you don't have are shown to you, never slipped in.</li>
-<li><b>Fair pricing.</b> Tailoring in your own format is free to try (1 per person during pre-launch). Extras are prepaid, with no subscription.</li>
-<li><b>Built for applying abroad.</b> One CV can become a US résumé, a UK CV, a Europass-style CV or a Dutch/German tabular CV. The <a href="/jobs">daily jobs list</a> shows English-speaking tech jobs in Europe, visa sponsorship first.</li>
+<li><b>Resume Builder.</b> Create or import a resume, edit structured sections, preview 20 templates and export PDF or DOCX.</li>
+<li><b>ATS-style Checker.</b> Run 28 deterministic checks for common formatting, structure, readability, impact and keyword issues.</li>
+<li><b>Local-first workflow.</b> Your working resume stays in your browser unless you explicitly choose optional cloud sync or an optional AI feature.</li>
 </ul>
-<h2>Where we are</h2>
-<p>Fitwise is in early access. Tailoring, match score, keywords, formats and previews work today. Card payments and Autopilot are coming soon. Feedback shapes what we build next: <a href="/contact">tell us what you need</a>.</p>
-<p><a class="btn" href="/tailor">Tailor my CV free</a></p>
+<h2>Important limitation</h2>
+<p>Fitwise's checks are practical diagnostics. They are not integrations, certifications or guarantees for any employer's applicant tracking system.</p>
+<p>Feedback and data requests can be sent through the <a href="/contact">contact page</a>.</p>
+<p><a class="btn" href="/builder">Build your resume</a> <a class="btn ghost" href="/ats-checker">Check your resume</a></p>
 </article>"""
 
 CONTACT = """<section class="wrap narrow prose">
