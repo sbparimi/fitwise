@@ -256,9 +256,9 @@ FW.atsScan = function(opts){
     wc>120 ? "Your resume text parses cleanly ("+wc+" words extracted), so ATS software can read every line."
            : "Only "+wc+" words could be read. An ATS may see the same gap — export as a text-based PDF or DOCX, never a scan or image."));
   var ext = (filename.match(/\.([a-z0-9]+)$/i)||[])[1];
-  g1.checks.push(C("file_format","File format", (!ext||/^(pdf|docx|doc|txt)$/i.test(ext))?"pass":"fail",
+  g1.checks.push(C("file_format","File format", (!ext||/^(pdf|docx|txt)$/i.test(ext))?"pass":"fail",
     !ext ? "Pasted text was analysed directly. For applications, upload a PDF or DOCX — the two formats every major ATS handles best."
-         : (/^(pdf|docx|doc|txt)$/i.test(ext) ? "Your resume is a "+ext.toUpperCase()+" file, one of the formats ATS software handles best."
+         : (/^(pdf|docx|txt)$/i.test(ext) ? "Your resume is a "+ext.toUpperCase()+" file, one of the formats ATS software handles best."
             : "." + ext + " is not reliably parsed. Export to PDF or DOCX instead.")));
   g1.checks.push(C("word_count","Length in words", (wc>=350&&wc<=1100)?"pass":(wc>=220&&wc<=1500?"warn":"fail"),
     (wc>=350&&wc<=1100) ? wc+" words is in the range recruiters and parsers expect (roughly 350–1,100)."
