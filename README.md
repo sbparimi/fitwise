@@ -181,9 +181,9 @@ Suresh (WhatsApp 1:09 PM 1 Nov, m:61f07e1b): every tab behind Google sign-in, fu
 - x-admin-key header = signed-in admin view of every gated page (used by jobs_push.mjs checks and check_links.mjs).
 - Signed-in strip under the header: "Signed in as … · Admin (admins only) · Your data · Sign out". /account: stored CVs (download/delete),
   delete my account (deleteUser: CVs, credits, ledger, tailoring records, covers, events, users row; ust:<sub> ends open sessions).
-- ANALYTICS (first-party, D1 table ev, append-only): ts, day (Amsterdam), vid (cookie fw_vid, 1 year), uid (Google sub), type, path, ref (host),
+- ANALYTICS (first-party, opt-in, D1 table ev, append-only): ts, day (Amsterdam), vid (cookie fw_vid only after analytics consent), uid (signed-in sub), type, path, ref (host),
   utm source/medium/campaign, dev/os/br (from UA; in-app named), cc (Cloudflare country; IP not stored), obj (job id etc.), meta.
-  Page views come from /fw.js (footer, all pages incl. static ones) -> POST /api/hit. Server events: gate_shown, inapp_hint, signin_ok/
+  Page views come from /fw.js (footer, all pages incl. static ones) -> POST /api/hit only after analytics consent. The consent preference is stored in fw_consent; reject/no choice means no analytics events or visitor ID cookie. Server events: gate_shown, inapp_hint, signin_ok/
   signin_fail, job_view, apply_click, events_view, tailor_start/done/blocked/error, cv_upload, download, cover_letter, signout, waitlist_join,
   buy_interest, jobs_subscribe. Client events: signin_start (GIS click), signin_fail, open_browser, copy_link.
   Not recorded: bots/scripts (UA list incl. FitwiseCheck), the admin key, admin accounts' own visits. Test sessions are stored with uid test:…
