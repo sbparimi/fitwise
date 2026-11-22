@@ -119,6 +119,9 @@ async function gateSweep(env) {
     const cvCut = Date.now() - CV_RETENTION_DAYS * 864e5;
     const olds = (await db.prepare("SELECT id FROM cvs WHERE created < ? LIMIT 500").bind(cvCut).all()).results || [];
     for (const r of olds) await deleteCv(env, r.id);
+    const appDb = await build1Db(env);
+    await cleanupResumes(appDb);
+    await cleanupAtsScans(appDb);
   } catch (e) {}
 }
 
