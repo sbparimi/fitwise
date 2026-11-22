@@ -443,6 +443,10 @@ async function routeBuild1(p, req, env, url) {
       if (!/^scan_(?:[a-f0-9]{14}|[a-f0-9]{32})$/i.test(id)) return json({ error: "scan not found" }, 404);
       const row = await db.prepare("SELECT id, filename, score, report_json, created_at FROM ats_scans WHERE id = ?").bind(id).first();
       if (!row) return json({ error: "scan not found" }, 404);
+      if (Number(row.created_at || 0) < Date.now() - 30 * 86400000) {
+        await db.prepare("DELETE FROM ats_scans WHERE id = ?").bind(id).run();
+        return json({ error: "scan not found" }, 404);
+      }
       return json({ id: row.id, filename: row.filename, score: row.score, report: JSON.parse(row.report_json || "{}"), created_at: row.created_at });
     }
     if (req.method === "POST") {
@@ -457,8 +461,11 @@ async function routeBuild1(p, req, env, url) {
       await bump(env, rateKey, 86400);
       const s = await currentSession(req, env);
       const id = "scan_" + crypto.randomUUID().replace(/-/g, "");
+      const originalName = String(b.filename || "").toLowerCase();
+      const extension = (originalName.match(/\\.(pdf|docx|txt)$/) || [])[0] || "";
+      const safeFilename = "Resume" + extension;
       await db.prepare("INSERT INTO ats_scans (id, sub, filename, score, report_json, resume_text, jd_text, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind(
-        id, s ? s.sub : null, String(b.filename || "Pasted Resume").slice(0, 120), Math.max(0, Math.min(100, Number(report.score || 0))),
+        id, s ? s.sub : null, safeFilename, Math.max(0, Math.min(100, Number(report.score || 0))),
         reportJson, "", "", Date.now()
       ).run();
       try { track(req, "ats_scan", { obj: id, meta: String(report.score || 0) }); } catch {}
