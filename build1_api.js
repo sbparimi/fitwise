@@ -25,6 +25,13 @@ async function cleanupAtsScans(db) {
   await db.prepare("DELETE FROM ats_scans WHERE created_at < ?").bind(now - 90 * 86400000).run();
   _atsScanCleanupAt = now;
 }
+let _resumeCleanupAt = 0;
+async function cleanupResumes(db) {
+  const now = Date.now();
+  if (now - _resumeCleanupAt < 3600000) return;
+  await db.prepare("DELETE FROM resumes WHERE COALESCE(updated_at, created_at, 0) < ?").bind(now - 90 * 86400000).run();
+  _resumeCleanupAt = now;
+}
 async function build1Db(env) {
   const db = env.DB;
   if (!_b1Ready) {
@@ -517,6 +524,7 @@ async function routeBuild1(p, req, env, url) {
     const s = await currentSession(req, env);
     if (!s) return json({ error: "Sign in to sync resumes to cloud.", code: "signin_required" }, 401);
     const db = await build1Db(env);
+    await cleanupResumes(db);
     if (req.method === "GET") {
       const rows = (await db.prepare("SELECT id, title, target_role, doc_json, theme_json, ats_score, updated_at, created_at FROM resumes WHERE sub = ? ORDER BY updated_at DESC LIMIT 50").bind(s.sub).all()).results || [];
       return json({ resumes: rows.map(r => ({ id: r.id, title: r.title, target_role: r.target_role, doc: JSON.parse(r.doc_json || "{}"), theme: JSON.parse(r.theme_json || "{}"), ats_score: r.ats_score || 0, updated_at: r.updated_at, created_at: r.created_at })) });
