@@ -440,19 +440,26 @@ async function routeBuild1(p, req, env, url) {
     await cleanupAtsScans(db);
     if (req.method === "GET") {
       const id = String(url.searchParams.get("id") || "").trim();
-      if (!/^scan_[a-f0-9]{32}$/i.test(id)) return json({ error: "scan not found" }, 404);
+      if (!/^scan_(?:[a-f0-9]{14}|[a-f0-9]{32})$/i.test(id)) return json({ error: "scan not found" }, 404);
       const row = await db.prepare("SELECT id, filename, score, report_json, created_at FROM ats_scans WHERE id = ?").bind(id).first();
       if (!row) return json({ error: "scan not found" }, 404);
       return json({ id: row.id, filename: row.filename, score: row.score, report: JSON.parse(row.report_json || "{}"), created_at: row.created_at });
     }
     if (req.method === "POST") {
       const b = await req.json().catch(() => ({}));
+      const report = b.report;
+      if (!report || typeof report !== "object" || !Array.isArray(report.groups)) return json({ error: "Invalid ATS report." }, 400);
+      const reportJson = JSON.stringify(report);
+      if (reportJson.length > 60000) return json({ error: "ATS report is too large." }, 413);
+      const ip = req.headers.get("cf-connecting-ip") || "0";
+      const rateKey = "q:ats-share:" + (await sha(ip)).slice(0, 20) + ":" + amsDay();
+      if ((await kvNum(env, rateKey)) >= 50) return json({ error: "Share report limit reached. You can still review your scan in this browser." }, 429);
+      await bump(env, rateKey, 86400);
       const s = await currentSession(req, env);
       const id = "scan_" + crypto.randomUUID().replace(/-/g, "");
-      const report = b.report || {};
       await db.prepare("INSERT INTO ats_scans (id, sub, filename, score, report_json, resume_text, jd_text, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind(
-        id, s ? s.sub : null, String(b.filename || "Pasted Resume").slice(0, 120), Number(report.score || 0),
-        JSON.stringify(report).slice(0, 60000), "", "", Date.now()
+        id, s ? s.sub : null, String(b.filename || "Pasted Resume").slice(0, 120), Math.max(0, Math.min(100, Number(report.score || 0))),
+        reportJson, "", "", Date.now()
       ).run();
       try { track(req, "ats_scan", { obj: id, meta: String(report.score || 0) }); } catch {}
       return json({ ok: true, scan_id: id });
