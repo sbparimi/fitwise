@@ -17,6 +17,14 @@ function cleanLLMOutput(t) {
 const FREE_LLM_BY_ID = Object.fromEntries(FREE_LLM_CATALOG.map(p => [p.id, p]));
 
 let _b1Ready = false;
+let _atsScanCleanupAt = 0;
+async function cleanupAtsScans(db) {
+  const now = Date.now();
+  if (now - _atsScanCleanupAt < 3600000) return;
+  await db.prepare("UPDATE ats_scans SET resume_text = '', jd_text = '' WHERE resume_text <> '' OR jd_text <> ''").run();
+  await db.prepare("DELETE FROM ats_scans WHERE created_at < ?").bind(now - 30 * 86400000).run();
+  _atsScanCleanupAt = now;
+}
 async function build1Db(env) {
   const db = env.DB;
   if (!_b1Ready) {
@@ -429,12 +437,13 @@ async function routeBuild1(p, req, env, url) {
   // 3. Ungated ATS Scan persistence (?scan_id=...)
   if (p === "/api/ats/scan") {
     const db = await build1Db(env);
+    await cleanupAtsScans(db);
     if (req.method === "GET") {
       const id = String(url.searchParams.get("id") || "").trim();
-      if (!id) return json({ error: "missing id" }, 400);
-      const row = await db.prepare("SELECT id, filename, score, report_json, resume_text, jd_text, created_at FROM ats_scans WHERE id = ?").bind(id).first();
+      if (!/^scan_[a-f0-9]{14}$/i.test(id)) return json({ error: "scan not found" }, 404);
+      const row = await db.prepare("SELECT id, filename, score, report_json, created_at FROM ats_scans WHERE id = ?").bind(id).first();
       if (!row) return json({ error: "scan not found" }, 404);
-      return json({ id: row.id, filename: row.filename, score: row.score, report: JSON.parse(row.report_json || "{}"), resume_text: row.resume_text || "", jd_text: row.jd_text || "", created_at: row.created_at });
+      return json({ id: row.id, filename: row.filename, score: row.score, report: JSON.parse(row.report_json || "{}"), created_at: row.created_at });
     }
     if (req.method === "POST") {
       const b = await req.json().catch(() => ({}));
@@ -443,7 +452,7 @@ async function routeBuild1(p, req, env, url) {
       const report = b.report || {};
       await db.prepare("INSERT INTO ats_scans (id, sub, filename, score, report_json, resume_text, jd_text, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind(
         id, s ? s.sub : null, String(b.filename || "Pasted Resume").slice(0, 120), Number(report.score || 0),
-        JSON.stringify(report).slice(0, 60000), String(b.resume_text || "").slice(0, 35000), String(b.jd_text || "").slice(0, 15000), Date.now()
+        JSON.stringify(report).slice(0, 60000), "", "", Date.now()
       ).run();
       try { track(req, "ats_scan", { obj: id, meta: String(report.score || 0) }); } catch {}
       return json({ ok: true, scan_id: id });
