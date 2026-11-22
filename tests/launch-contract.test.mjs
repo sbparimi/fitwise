@@ -101,6 +101,8 @@ test("analytics tracking and visitor cookies require opt-in consent", () => {
   assert.ok(gate.includes("clearVid: !consent && !!v"));
   assert.ok(gate.includes("Max-Age=0"));
   assert.ok(gate.includes("Max-Age=31536000"));
+  assert.ok(gate.includes("await cleanupResumes(appDb)"));
+  assert.ok(gate.includes("await cleanupAtsScans(appDb)"));
   assert.ok(fwJs.includes("if(!analyticsAllowed()) return;"));
   assert.ok(fwJs.includes("data-cookie-choice"));
   assert.ok(footer.includes("fwCookieNotice"));
