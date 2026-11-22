@@ -67,6 +67,7 @@ Do not advertise deferred features as generally available from the MVP homepage.
 ## External launch blockers requiring owner action
 
 - **Legal controller details:** publish the operating legal entity/name and postal contact address in the privacy notice. These details must not be invented.
+- **Privacy governance:** verify the analytics opt-in and withdrawal behavior, document the legal basis and retention for operational logs, and confirm Cloudflare/AI processor terms and any EEA transfer safeguards before launch.
 - **Email sign-in:** optional email OTP remains unavailable until a verified Resend sender/domain and runtime key are configured. Core builder/checker use must continue without sign-in.
 - **Production verification:** run the full browser matrix against https://fitwise.sites.tab.bot/. Repository CI is not a substitute for real browser testing.
 - **AI processing:** keep AI features out of the core launch promise. If enabled, verify provider configuration, data disclosures and factuality controls first.
