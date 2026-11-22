@@ -1,4 +1,4 @@
-/* /signin — passwordless email code (works inside in-app browsers where Google sign-in is blocked). */
+/* /signin — optional passwordless email sign-in; requires configured email delivery. */
 (function(){
 function init(){
   var FW = window.FW; if(!FW) return;
