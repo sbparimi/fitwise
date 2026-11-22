@@ -465,7 +465,7 @@ async function routeBuild1(p, req, env, url) {
       const s = await currentSession(req, env);
       const id = "scan_" + crypto.randomUUID().replace(/-/g, "");
       const originalName = String(b.filename || "").toLowerCase();
-      const extension = (originalName.match(/\\.(pdf|docx|txt)$/) || [])[0] || "";
+      const extension = originalName.endsWith(".pdf") ? ".pdf" : originalName.endsWith(".docx") ? ".docx" : originalName.endsWith(".txt") ? ".txt" : "";
       const safeFilename = "Resume" + extension;
       await db.prepare("INSERT INTO ats_scans (id, sub, filename, score, report_json, resume_text, jd_text, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind(
         id, s ? s.sub : null, safeFilename, Math.max(0, Math.min(100, Number(report.score || 0))),
