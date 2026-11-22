@@ -32,6 +32,23 @@
     <span>Local browser editing · Optional cloud sync when enabled · Review every suggested edit</span>
   </div>
 </footer>
+<style>
+#fwCookieNotice{position:fixed;z-index:9999;left:16px;right:16px;bottom:16px;max-width:760px;margin:auto;padding:16px 18px;background:#101827;color:#f8fafc;border:1px solid #334155;border-radius:14px;box-shadow:0 16px 44px rgba(0,0,0,.28);display:flex;gap:16px;align-items:center;justify-content:space-between}
+#fwCookieNotice[hidden]{display:none}
+#fwCookieNotice p{margin:0;font-size:14px;line-height:1.45}
+#fwCookieNotice .cookie-actions{display:flex;gap:8px;flex-shrink:0}
+#fwCookieNotice button{border:1px solid #64748b;border-radius:9px;padding:9px 12px;font:inherit;font-size:13px;font-weight:650;cursor:pointer}
+#fwCookieNotice button[data-cookie-choice="accept"]{background:#fff;color:#111827;border-color:#fff}
+#fwCookieNotice button[data-cookie-choice="reject"]{background:transparent;color:#fff}
+@media(max-width:640px){#fwCookieNotice{left:10px;right:10px;bottom:10px;display:block}#fwCookieNotice .cookie-actions{margin-top:12px}#fwCookieNotice button{flex:1}}
+</style>
+<div id="fwCookieNotice" hidden role="dialog" aria-label="Optional analytics preferences" aria-live="polite">
+  <p>Fitwise uses optional first-party analytics to improve the product. Analytics are off unless you accept. Your resume content is not used for analytics.</p>
+  <div class="cookie-actions">
+    <button type="button" data-cookie-choice="reject">Reject optional</button>
+    <button type="button" data-cookie-choice="accept">Accept analytics</button>
+  </div>
+</div>
 <script src="/fw-i18n.js" defer></script>
 <script src="/fw-core.js" defer></script>
 <script src="/fw.js" defer></script>
