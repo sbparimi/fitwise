@@ -54,6 +54,14 @@ test("ATS report UI sends only the generated report to persistence", () => {
   assert.ok(!atsUi.includes("jd_text:"));
 });
 
+test("resume saves do not report success when browser storage fails", () => {
+  assert.ok(core.includes("if(!LS.set(RKEY, all.slice(0,40))) return null;"));
+  assert.ok(core.includes("Resume saved in this browser, but cloud sync did not complete."));
+  assert.ok(read("../site/fw-builder.js").includes("if(!stored)"));
+  assert.ok(read("../site/fw-builder.js").includes('FW.toast("Saved in this browser")'));
+  assert.ok(!read("../site/fw-builder.js").includes("and synced to your account"));
+});
+
 test("public marketing avoids ATS vendor certification claims", () => {
   assert.ok(!home.includes("Tested Against</span> Workday"));
   assert.ok(home.includes("not certification or a guarantee of acceptance"));
