@@ -458,6 +458,8 @@ async function routeBuild1(p, req, env, url) {
       if (!report || typeof report !== "object" || !Array.isArray(report.groups)) return json({ error: "Invalid ATS report." }, 400);
       const reportJson = JSON.stringify(report);
       if (reportJson.length > 60000) return json({ error: "ATS report is too large." }, 413);
+      const scoreValue = Number(report.score);
+      const safeScore = Number.isFinite(scoreValue) ? Math.max(0, Math.min(100, scoreValue)) : 0;
       const ip = req.headers.get("cf-connecting-ip") || "0";
       const rateKey = "q:ats-share:" + (await sha(ip)).slice(0, 20) + ":" + amsDay();
       if ((await kvNum(env, rateKey)) >= 50) return json({ error: "Share report limit reached. You can still review your scan in this browser." }, 429);
@@ -468,7 +470,7 @@ async function routeBuild1(p, req, env, url) {
       const extension = originalName.endsWith(".pdf") ? ".pdf" : originalName.endsWith(".docx") ? ".docx" : originalName.endsWith(".txt") ? ".txt" : "";
       const safeFilename = "Resume" + extension;
       await db.prepare("INSERT INTO ats_scans (id, sub, filename, score, report_json, resume_text, jd_text, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind(
-        id, s ? s.sub : null, safeFilename, Math.max(0, Math.min(100, Number(report.score || 0))),
+        id, s ? s.sub : null, safeFilename, safeScore,
         reportJson, "", "", Date.now()
       ).run();
       try { track(req, "ats_scan", { obj: id, meta: String(report.score || 0) }); } catch {}
