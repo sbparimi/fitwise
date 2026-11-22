@@ -38,6 +38,8 @@ test("ATS share reports do not persist or return resume text", () => {
   assert.ok(route.includes("scan_(?:[a-f0-9]{14}|[a-f0-9]{32})"));
   assert.ok(route.includes('crypto.randomUUID().replace(/-/g, "")'));
   assert.ok(route.includes("q:ats-share:"));
+  assert.ok(api.includes("Number.isFinite(scoreValue)"));
+  assert.ok(route.includes("safeScore"));
   assert.ok(route.includes('originalName.endsWith(".pdf")'));
   assert.ok(route.includes('originalName.endsWith(".docx")'));
   assert.ok(route.includes('originalName.endsWith(".txt")'));
