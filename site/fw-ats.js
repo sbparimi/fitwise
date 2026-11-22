@@ -79,7 +79,7 @@ function init(){
     var fixBtn = $("fixBtn");
     if(fixBtn){
       fixBtn.disabled = !state.text;
-      if(!state.text) fixBtn.textContent = "Source resume is not included in this shared report";
+      fixBtn.textContent = state.text ? "Fix in builder" : "Source resume is not included in this shared report";
     }
 
     $("fixBtn").addEventListener("click", function(){
