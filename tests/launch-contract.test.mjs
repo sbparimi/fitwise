@@ -41,6 +41,8 @@ test("ATS share reports do not persist or return resume text", () => {
   assert.ok(route.includes("scan_(?:[a-f0-9]{14}|[a-f0-9]{32})"));
   assert.ok(route.includes('crypto.randomUUID().replace(/-/g, "")'));
   assert.ok(route.includes("q:ats-share:"));
+  assert.ok(api.includes("now - 90 * 86400000"));
+  assert.ok(api.includes("Date.now() - 90 * 86400000"));
   assert.ok(api.includes("Number.isFinite(scoreValue)"));
   assert.ok(route.includes("safeScore"));
   assert.ok(route.includes("const safeReport = {"));
