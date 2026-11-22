@@ -94,9 +94,9 @@ PRIVACY = """<article class="wrap prose">
 <h2>Resume builder</h2>
 <p>The core builder reads PDF, DOCX and TXT files in your browser. Resume editing and autosave use your browser's local storage. Your resume is not uploaded just because you open or edit it. Clearing browser storage or using a different browser/device can remove or make that local copy unavailable.</p>
 <h2>ATS-style checker and share links</h2>
-<p>The checker analyses the resume text in your browser. When you run a scan, Fitwise receives and stores the generated report, a generic file-type label and the report date so the share link can reopen it. The original file name, resume text and job description are not stored in the shareable report. Shareable reports are retained for up to 30 days and then deleted.</p>
+<p>The checker analyses the resume text in your browser. When you run a scan, Fitwise receives and stores the generated report, a generic file-type label and the report date so the share link can reopen it. The original file name, resume text and job description are not stored in the shareable report. Shareable reports are retained for up to 90 days and then deleted.</p>
 <h2>Optional account and cloud sync</h2>
-<p>Account sign-in is optional for the core builder and checker. If you choose to sign in and use cloud sync, Fitwise stores the account identifier and email address, session information, and the resume documents and template settings you choose to sync. Synced content remains until you delete it or request account deletion. You can delete individual synced resumes from the dashboard; for account deletion or a data copy request, use the contact page.</p>
+<p>Account sign-in is optional for the core builder and checker. If you choose to sign in and use cloud sync, Fitwise stores the account identifier and email address, session information, and the resume documents and template settings you choose to sync. Cloud-synced resumes are retained for up to 90 days after their last update. Account identity and session records are handled separately and can be deleted through account deletion. You can delete individual synced resumes from the dashboard; for account deletion or a data copy request, use the contact page.</p>
 <h2>Optional AI features</h2>
 <p>If an AI enhancement feature is enabled and you choose to use it, the relevant resume text, bullet or job-description excerpt is sent to the AI provider configured for Fitwise so it can return the requested result. The configured provider may process that content under its own terms and privacy policy. The core resume editor and rule-based ATS checks do not require an AI provider.</p>
 <h2>Usage and security information</h2>
@@ -108,8 +108,8 @@ PRIVACY = """<article class="wrap prose">
 <h2>Retention and deletion</h2>
 <ul>
 <li>Local resumes: until you delete them or clear your browser storage.</li>
-<li>Shareable ATS reports: up to 30 days.</li>
-<li>Cloud-synced resumes and account data: until you delete the content or request account deletion.</li>
+<li>Shareable ATS reports: up to 90 days.</li>
+<li>Cloud-synced resumes and stored CV uploads: up to 90 days after their last update or creation, respectively. Account identity data is retained until account deletion; session records expire separately.</li>
 <li>Detailed first-party analytics: up to 90 days, followed by aggregated totals where applicable.</li>
 <li>Contact messages: until the request has been handled and no longer needs to be retained.</li>
 </ul>
@@ -139,7 +139,7 @@ TERMS = """<article class="wrap prose">
 <li>Do not misuse the service, attempt to disrupt it or exceed reasonable usage limits.</li>
 </ul>
 <h2>Your content and storage</h2>
-<p>Your resume remains yours. The core builder stores working copies in your browser. If you choose optional cloud sync, your synced resume is stored against your account. When you run an ATS scan, the report and a generic file-type label are retained for up to 30 days to support the share link; the original file name, resume text and job description are not stored in that report. See the <a href="/privacy">privacy policy</a> for details.</p>
+<p>Your resume remains yours. The core builder stores working copies in your browser. If you choose optional cloud sync, your synced resume is stored against your account. When you run an ATS scan, the report and a generic file-type label are retained for up to 90 days to support the share link; the original file name, resume text and job description are not stored in that report. See the <a href="/privacy">privacy policy</a> for details.</p>
 <h2>Availability and liability</h2>
 <p>Fitwise is provided on an early-access basis and may change or be unavailable at times. You are responsible for checking the accuracy and suitability of every result. To the extent permitted by law, Fitwise is not liable for indirect losses or employer decisions. Nothing in these terms limits rights you have under applicable consumer law.</p>
 <h2>Payments</h2>
