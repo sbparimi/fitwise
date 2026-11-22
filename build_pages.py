@@ -100,7 +100,7 @@ PRIVACY = """<article class="wrap prose">
 <h2>Optional AI features</h2>
 <p>If an AI enhancement feature is enabled and you choose to use it, the relevant resume text, bullet or job-description excerpt is sent to the AI provider configured for Fitwise so it can return the requested result. The configured provider may process that content under its own terms and privacy policy. The core resume editor and rule-based ATS checks do not require an AI provider.</p>
 <h2>Usage and security information</h2>
-<p>Fitwise uses first-party operational analytics to understand page visits and product actions. This can include page paths, referring site, campaign parameters, device and browser category, approximate country, and actions such as sign-in or report creation. A random first-party visitor identifier is stored in a cookie. Detailed event records are retained for up to 90 days and may then be kept only as aggregated totals. Fitwise does not use third-party advertising trackers.</p>
+<p>Fitwise uses first-party operational analytics to understand page visits and product actions. This can include page paths, referring site, campaign parameters, device and browser category, approximate country, and actions such as sign-in or report creation. No persistent visitor analytics cookie is set. Each server-side event receives a random identifier that is not reused across requests. Detailed event records are retained for up to 90 days and may then be kept only as aggregated totals. Fitwise does not use third-party advertising trackers.</p>
 <h2>Contact messages</h2>
 <p>If you submit the contact form, Fitwise stores the name and email address you provide, the topic and message so the team can respond. Data requests can be submitted through the <a href="/contact">contact page</a>.</p>
 <h2>Where information is processed</h2>
@@ -115,7 +115,7 @@ PRIVACY = """<article class="wrap prose">
 </ul>
 <p>You can delete local resumes from the builder or dashboard where available. For cloud data, account deletion or a copy/correction request, use the <a href="/contact">contact page</a>. If you are in the EU or UK, you may also have rights to access, rectify, erase, restrict or object to certain processing, and to complain to your data protection authority.</p>
 <h2>Cookies and local storage</h2>
-<p>Fitwise uses a first-party visitor cookie for its own analytics and a session cookie when you sign in. The builder uses browser local storage for your resumes and settings. Fitwise does not use advertising cookies or third-party analytics cookies.</p>
+<p>Fitwise does not set a persistent analytics cookie. A session cookie is used only when you sign in. The builder uses browser local storage for your resumes and settings. Fitwise does not use advertising cookies or third-party analytics cookies.</p>
 <h2>Children</h2>
 <p>Fitwise is intended for job seekers aged 16 and over.</p>
 <h2>Changes</h2>
