@@ -13,6 +13,8 @@ const terms = read("../build_pages.py");
 const gate = read("../gate.js");
 const fwJs = read("../site/fw.js");
 const footer = read("../partials_footer.html");
+const dashboard = read("../front/dashboard.html");
+const signin = read("../front/signin.html");
 const templates = read("../front/templates.html");
 
 test("email OTP never exposes the code and requires successful delivery", () => {
@@ -84,6 +86,15 @@ test("analytics tracking and visitor cookies require opt-in consent", () => {
   assert.ok(fwJs.includes("data-cookie-choice"));
   assert.ok(footer.includes("fwCookieNotice"));
   assert.ok(terms.includes("analytics are off by default"));
+});
+
+test("cloud sync and optional sign-in disclosures match the implementation", () => {
+  assert.ok(core.includes("var local = FW.store.all(), byId = {}, cloudById = {}, needsPush = [];"));
+  assert.ok(core.includes("needsPush.map(function(r){ return FW.cloud.push(r); })"));
+  assert.ok(dashboard.includes("requests deletion of its cloud copy"));
+  assert.ok(signin.includes("Sign-in is optional"));
+  assert.ok(signin.includes("Email verification is available only when email delivery is configured"));
+  assert.ok(!signin.includes("Email codes work everywhere"));
 });
 
 test("public marketing avoids ATS vendor certification claims", () => {
