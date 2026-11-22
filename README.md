@@ -1,6 +1,6 @@
-# Fitwise — ATS-Tested AI Resume Builder, 28-Check ATS Scanner & EU/Remote Job Board
+# Fitwise — Resume Builder & 28-Check ATS-Style Resume Checker
 
-> **Build 1 (22 Nov 2026)** — Complete SaaS frontend & API revamp.
+> **MVP release scope (22 Nov 2026)** — Resume creation, template preview, PDF/DOCX export and deterministic ATS-style diagnostics.
 
 ## Hosting Architecture: Production (Cloudflare Worker + D1) vs. Static Preview (Vercel)
 
@@ -11,6 +11,15 @@
 - **Static Frontend Preview (Vercel):**
   - `vercel.json` is configured with `{"outputDirectory": "site", "cleanUrls": true}` so the static frontend in `site/` (`/` homepage, `/ats-checker`, `/builder`, `/templates`, `/cover-letter`, `/cover-letter-checker`, `/dashboard`, `/pricing`, `/signin`, `/checklist`, `/agent-checklist`) deploys cleanly on Vercel out of the box.
   - Note: Client-side tools (ATS checker, 20-template builder, PDF/DOCX export, local storage) work directly on the static Vercel preview, while D1-backed routes (`/jobs`, `/j/<id>`, `/api/*`, cloud sync) remain hosted on the live Cloudflare Worker at `https://fitwise.sites.tab.bot/`.
+
+## MVP privacy and security behavior
+
+- The resume editor reads supported files in the browser and saves working copies in browser local storage.
+- ATS checks run in the browser. A scan creates a shareable report containing the generated diagnostic and a generic file-type label; source resume text, job-description text and the original file name are not stored.
+- Shareable ATS reports expire after 30 days. Public report creation is rate-limited.
+- Email OTP is optional and requires a configured Resend sender. If delivery is not configured or fails, the API returns an error and never returns a verification code to the browser.
+- The core builder and checker do not require sign-in. Cloud sync and AI enhancement are separate optional features.
+- The ATS-style score is not a certification or integration with any employer ATS.
 
 ## Build (Build 1)
 
