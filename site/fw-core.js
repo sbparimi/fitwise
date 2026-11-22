@@ -33,6 +33,7 @@ var LS = {
 };
 FW.LS = LS;
 var RKEY="fw_resumes_v1", AKEY="fw_active_resume", TKEY="fw_tracker_v1", CKEY="fw_letters_v1";
+var cloudSyncWarningShown = false;
 FW.store = {
   all:function(){ var a = LS.get(RKEY, []); return Array.isArray(a)?a:[]; },
   get:function(id){ return FW.store.all().filter(function(r){ return r.id===id; })[0] || null; },
@@ -48,8 +49,9 @@ FW.store = {
     if(!LS.set(RKEY, all.slice(0,40))) return null;
     FW.store.setActive(rec.id);
     if(FW.cloud.me) FW.cloud.push(rec).then(function(ok){
-      if(!ok) FW.toast("Resume saved in this browser, but cloud sync did not complete.");
-    }).catch(function(){ FW.toast("Resume saved in this browser, but cloud sync did not complete."); });
+      if(!ok && !cloudSyncWarningShown){ cloudSyncWarningShown = true; FW.toast("Resume saved in this browser, but cloud sync did not complete."); }
+      else if(ok) cloudSyncWarningShown = false;
+    }).catch(function(){ if(!cloudSyncWarningShown){ cloudSyncWarningShown = true; FW.toast("Resume saved in this browser, but cloud sync did not complete."); } });
     return rec;
   },
   remove:function(id){ LS.set(RKEY, FW.store.all().filter(function(r){ return r.id!==id; }));
