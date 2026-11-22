@@ -10,6 +10,9 @@ const builderPage = read("../front/builder.html");
 const atsPage = read("../front/ats-checker.html");
 const home = read("../front/index.html");
 const terms = read("../build_pages.py");
+const gate = read("../gate.js");
+const fwJs = read("../site/fw.js");
+const footer = read("../partials_footer.html");
 const templates = read("../front/templates.html");
 
 test("email OTP never exposes the code and requires successful delivery", () => {
@@ -61,6 +64,18 @@ test("resume saves do not report success when browser storage fails", () => {
   assert.ok(read("../site/fw-builder.js").includes("if(!stored)"));
   assert.ok(read("../site/fw-builder.js").includes('FW.toast("Saved in this browser")'));
   assert.ok(!read("../site/fw-builder.js").includes("and synced to your account"));
+});
+
+test("analytics tracking and visitor cookies require opt-in consent", () => {
+  assert.ok(gate.includes('cookieOf(req, "fw_consent") === "analytics"'));
+  assert.ok(gate.includes('cookieOf(req, "fw_consent") !== "analytics"'));
+  assert.ok(gate.includes("clearVid: !consent && !!v"));
+  assert.ok(gate.includes("Max-Age=0"));
+  assert.ok(gate.includes("Max-Age=31536000"));
+  assert.ok(fwJs.includes("if(!analyticsAllowed()) return;"));
+  assert.ok(fwJs.includes("data-cookie-choice"));
+  assert.ok(footer.includes("fwCookieNotice"));
+  assert.ok(terms.includes("analytics are off by default"));
 });
 
 test("public marketing avoids ATS vendor certification claims", () => {
