@@ -40,6 +40,9 @@ test("ATS share reports do not persist or return resume text", () => {
   assert.ok(route.includes("q:ats-share:"));
   assert.ok(api.includes("Number.isFinite(scoreValue)"));
   assert.ok(route.includes("safeScore"));
+  assert.ok(route.includes("const safeReport = {"));
+  assert.ok(route.includes("filename: safeFilename"));
+  assert.ok(!route.includes("JSON.stringify(report)"));
   assert.ok(route.includes('originalName.endsWith(".pdf")'));
   assert.ok(route.includes('originalName.endsWith(".docx")'));
   assert.ok(route.includes('originalName.endsWith(".txt")'));
