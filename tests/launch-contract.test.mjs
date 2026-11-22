@@ -55,6 +55,8 @@ test("resume importer enforces supported types, size and text limits", () => {
   assert.ok(core.includes("else if(/\\.docx$/.test(name))"));
   assert.ok(core.includes("else if(/\\.pdf$/.test(name))"));
   assert.ok(core.includes("text.length > 50000"));
+  assert.ok(core.includes("/^(pdf|docx|txt)$/i.test(ext)"));
+  assert.ok(!core.includes("/^(pdf|docx|doc|txt)$/i.test(ext)"));
   assert.ok(builderPage.includes('accept=".pdf,.docx,.txt"'));
   assert.ok(atsPage.includes('accept=".pdf,.docx,.txt"'));
 });
