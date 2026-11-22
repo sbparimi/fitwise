@@ -25,7 +25,7 @@ test("ATS share reports do not persist or return resume text", () => {
   const end = api.indexOf("// 4. Resumes CRUD", start);
   assert.ok(start >= 0 && end > start, "ATS route should exist");
   const route = api.slice(start, end);
-  assert.ok(route.includes('JSON.stringify(report), "", "", Date.now()'));
+  assert.ok(route.includes('reportJson, "", "", Date.now()'));
   assert.ok(!route.includes("resume_text: row.resume_text"));
   assert.ok(api.includes("UPDATE ats_scans SET resume_text = '', jd_text = ''"));
   assert.ok(api.includes("DELETE FROM ats_scans WHERE created_at < ?"));
