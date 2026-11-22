@@ -1,0 +1,32 @@
+Lena Marsh
+Rotterdam, Netherlands | lena.marsh@example.com | +31 6 0000 0000 | linkedin.com/in/lena-marsh-example
+Backend Software Engineer
+
+Summary
+Backend engineer with 6 years of experience building web services for logistics and fintech products. Comfortable owning features end to end, from design to on-call. Recently focused on Python services that use large language models to classify and route customer requests.
+
+Experience
+Backend Engineer — Harbourline Logistics (fictional)
+Mar 2022 – Present
+- Built and maintained Python microservices (FastAPI, Postgres) that process 2 million shipment events a day.
+- Added an LLM-based ticket classifier with prompt templates and an offline evaluation set of 1,200 labelled examples, cutting manual triage by 35%.
+- Designed REST and GraphQL endpoints used by the web app and two partner integrations.
+- Wrote pytest suites and contract tests in the CI CD pipeline; raised coverage from 54% to 81%.
+- Took part in the on-call rotation and led three root-cause analyses after incidents.
+- Mentored two junior engineers through code reviews and pairing.
+
+Software Engineer — Brightpay (fictional)
+Jun 2019 – Feb 2022
+- Developed payment reconciliation jobs in Python and SQL running on k8s.
+- Improved monitoring with Grafana dashboards and alerts, reducing time to detect failures from hours to minutes.
+- Worked with product managers and designers in two-week Scrum sprints.
+- Migrated a legacy cron system to Airflow.
+
+Skills
+Python, FastAPI, Django, Postgres, Redis, Docker, k8s, Airflow, Git, pytest, Grafana, LangChain
+
+Education
+BSc Computer Science, Erasmus Technical Institute (fictional), 2019
+
+Languages
+English (fluent), Dutch (B1)

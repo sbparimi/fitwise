@@ -1,0 +1,39 @@
+<!--META {"title":"My Resumes & Job Tracker · Fitwise","desc":"Every resume you have built in Fitwise, plus the jobs you saved from the board. Local to your browser, synced to your account when you sign in.","path":"/dashboard","scripts":"<script src=\"/fw-templates.js\" defer></script>\n<script src=\"/fw-export.js\" defer></script>\n<script src=\"/fw-dashboard.js\" defer></script>\n<div id=\"printArea\"></div>"}-->
+<section class="sec" style="padding-bottom:28px">
+  <div class="wrap">
+    <div class="res-head">
+      <div>
+        <p class="eyebrow">Dashboard</p>
+        <h1 style="font-size:clamp(1.7rem,3.4vw,2.4rem);margin-bottom:6px">Your resumes</h1>
+        <p class="muted" id="syncLine">Saved in this browser.</p>
+      </div>
+      <div class="btn-row">
+        <a class="btn" href="/builder">+ New resume</a>
+        <a class="btn ghost" href="/ats-checker">Run an ATS scan</a>
+      </div>
+    </div>
+    <div class="dash-grid" id="resList" style="margin-top:22px"></div>
+  </div>
+</section>
+<section class="sec soft" id="tracker">
+  <div class="wrap">
+    <div class="res-head">
+      <div><p class="eyebrow">Job tracker</p><h2 style="margin-bottom:4px">Jobs you saved</h2>
+        <p class="muted small">Save any role from the board with one tap, then move it along as you apply.</p></div>
+      <a class="btn ghost" href="/jobs">Browse today’s jobs →</a>
+    </div>
+    <div id="trkList" style="margin-top:18px"></div>
+  </div>
+</section>
+<section class="sec">
+  <div class="wrap narrow">
+    <div class="card">
+      <h3>Where your data lives</h3>
+      <p>Resumes, letters and saved jobs are written to this browser’s local storage first, so the builder works with no account at all. When you sign in, the same records are also stored against your account so they appear on your other devices. Deleting a resume here removes both copies.</p>
+      <div class="btn-row" style="margin-top:14px">
+        <a class="btn sm ghost" href="/signin" id="signLink">Sign in for cloud sync</a>
+        <a class="btn sm ghost" href="/privacy">Privacy policy</a>
+      </div>
+    </div>
+  </div>
+</section>

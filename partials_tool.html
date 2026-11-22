@@ -1,0 +1,61 @@
+<section id="try" class="tool">
+  <div class="wrap">
+    <h2>Tailor your CV</h2>
+    <p class="muted" id="quota">Three steps, about 30 seconds. Your CV comes back in its own format.</p>
+    <p class="plnote" role="note"><b>Pre-launch:</b> 1 free tailoring per person (one per email and per browser). Use it on the job you care about most.</p>
+    <div id="jobpick" class="jobpick" hidden></div>
+    <form id="f" autocomplete="on">
+      <div class="grid">
+        <div class="card">
+          <div class="lbl"><label for="cv">1 · Your CV</label><label class="file">Upload PDF / DOCX<input type="file" id="cvfile" accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"></label></div>
+          <textarea id="cv" rows="12" placeholder="Paste your full CV here: name, contact line, summary, experience with bullet points, skills, education…" required></textarea>
+          <p class="hint" id="cvhint"></p>
+        </div>
+        <div class="card">
+          <div class="lbl"><label for="jd">2 · The job</label></div>
+          <div class="row"><input id="jurl" type="url" inputmode="url" placeholder="Job link (optional), e.g. Greenhouse, Lever, Ashby"><button type="button" class="btn ghost sm" id="fetch">Read link</button></div>
+          <textarea id="jd" rows="9" placeholder="…or paste the job description here" required></textarea>
+          <div class="row two"><input id="jtitle" placeholder="Job title (optional)"><input id="jco" placeholder="Company (optional)"></div>
+          <p class="hint" id="jdhint"></p>
+        </div>
+      </div>
+      <div class="card go">
+        <label for="email">3 · Your email</label>
+        <div class="row"><input id="email" type="email" placeholder="you@example.com" required autocomplete="email"><button class="btn" id="go" type="submit">Tailor my CV</button></div>
+        <p class="hint">No account needed: your email keeps your credits and results together. No spam.</p>
+        <p class="progress" id="progress" role="status" aria-live="polite" hidden></p>
+        <p class="err" id="err" role="alert"></p>
+      </div>
+    </form>
+
+    <div id="out" hidden>
+      <div class="result-head card">
+        <div class="score"><svg viewBox="0 0 36 36"><path class="bg" d="M18 2.5a15.5 15.5 0 1 1 0 31a15.5 15.5 0 1 1 0-31"/><path id="arc" class="fg" stroke-dasharray="0,100" d="M18 2.5a15.5 15.5 0 1 1 0 31a15.5 15.5 0 1 1 0-31"/></svg><div><b id="scoreN">0</b><span>match</span></div></div>
+        <div class="kw">
+          <h3 id="jobline"></h3>
+          <p class="small">Keywords you have</p><div id="have" class="chips"></div>
+          <p class="small">Keywords you're missing <em>(add them yourself only if they're true)</em></p><div id="miss" class="chips miss"></div>
+        </div>
+      </div>
+      <div class="card"><h3>What we changed</h3><ul id="changes" class="changes"></ul><p class="hint" id="mode"></p></div>
+      <div class="card">
+        <div class="h3row"><h3>Your CV, your format, updated <span class="free">FREE</span></h3><span class="small" id="origpages"></span></div>
+        <p class="small" id="orignote"></p>
+        <div id="origpv" class="pages"></div>
+        <div class="row wrapb"><button class="btn" id="dlorig">Download PDF</button><button class="btn ghost" id="dldocx" hidden>Download Word (.docx)</button></div>
+      </div>
+      <div class="card">
+        <div class="h3row"><h3>Extra formats for your location</h3><span class="small">Balance: <b class="credbal">0 credits</b> · <a href="#" data-buy>Buy credits</a></span></div>
+        <div class="row regionrow"><label for="region" class="small">Applying in</label><select id="region"></select></div>
+        <p class="small muted" id="regionwhy"></p>
+        <div id="fmts" class="fmts"></div>
+        <div class="bothrow"><span class="small">Both: <b id="bothlbl"></b></span><button class="btn sm" id="both">Download both – 2 credits <span class="usd">($1)</span></button></div>
+        <p class="small muted">Previews are free and watermarked. 1 credit = 1 format download ($0.50). Downloading the same format for this job again is free.</p>
+      </div>
+      <div class="card"><h3>Cover letter <span class="small">(written from your CV and this job; edit before you download)</span></h3><div id="clwrap"><textarea id="cl" rows="14"></textarea></div>
+        <div class="row wrapb"><button class="btn" id="clunlock">Unlock full cover letter – 1 credit <span class="usd">($0.50)</span></button><button class="btn ghost" id="dlcl">Cover letter (PDF)</button><button class="btn ghost" id="cpcl">Copy cover letter</button></div></div>
+      <p class="center small muted plnote2">Pre-launch: 1 free tailoring per person, so keep this result. <a href="/pricing">Pricing</a></p>
+      <p class="center"><a href="#try" id="again">Tailor for another job</a></p>
+    </div>
+  </div>
+</section>

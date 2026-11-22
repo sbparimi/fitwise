@@ -1,0 +1,59 @@
+<!--META {"title":"Free ATS Resume Checker — 28 Checks, Instant Score · Fitwise","desc":"Upload your resume or paste it, add the job ad, and get an instant 0–100 ATS score with 28 deterministic checks and your missing keywords. No login, no email wall, no card.","path":"/ats-checker","scripts":"<script src=\"/fw-templates.js\" defer></script>\n<script src=\"/fw-export.js\" defer></script>\n<script src=\"/fw-ats.js\" defer></script>"}-->
+<section class="tool-hero">
+  <div class="wrap">
+    <h1>Free Resume Checker — your ATS score in 60 seconds</h1>
+    <div class="hero-ticks"><span>28 real checks</span><span>No login</span><span>One-click fix in the builder</span></div>
+    <p class="lead">Upload your resume and Fitwise shows exactly what is failing, what to fix and how to clear the parsing traps that stop a CV before a human ever opens it. Add the job ad and it scores your keyword fit for that exact role too.</p>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="ats-shell">
+    <div class="ats-side" id="atsSide">
+      <div id="atsForm">
+        <div class="drop" id="drop" role="button" tabindex="0" aria-label="Upload your resume">
+          <b>Drop your resume here</b>
+          <span>PDF, DOCX or TXT — read in your browser</span>
+          <input type="file" id="file" accept=".pdf,.docx,.doc,.txt" hidden>
+        </div>
+        <div class="divider">or paste it</div>
+        <div class="fld">
+          <label for="cvText">Resume text</label>
+          <textarea id="cvText" placeholder="Paste your full resume text here…" spellcheck="false"></textarea>
+        </div>
+        <div class="fld">
+          <label for="jdText">Job description <span class="opt">— optional, adds keyword scoring</span></label>
+          <textarea id="jdText" placeholder="Paste the job ad to score your keyword fit for that exact role…" style="min-height:110px" spellcheck="false"></textarea>
+        </div>
+        <button class="btn block" id="scanBtn" type="button">Scan my resume free</button>
+        <p class="small muted" style="margin:10px 0 0">Your file is read in your browser. Only the resulting scan is stored, so its link can be reopened — nothing is emailed and no account is created.</p>
+      </div>
+      <div id="atsSummary" class="hide"></div>
+    </div>
+    <div class="ats-main" id="atsMain">
+      <div class="center" style="padding:60px 10px" id="atsIdle">
+        <span class="ring" id="idleRing" style="margin:0 auto 18px"></span>
+        <h3 style="margin-bottom:6px">Your report lands here</h3>
+        <p class="muted" style="max-width:40ch;margin:0 auto">28 checks across parsing, structure, contact details, impact, action verbs, keywords and readability — each with the specific fix.</p>
+      </div>
+      <div id="atsReport" class="hide"></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec soft">
+  <div class="wrap">
+    <div class="sec-head"><p class="eyebrow">What gets checked</p><h2>All 28 checks, in seven groups</h2></div>
+    <div class="grid g3">
+      <div class="card"><h3>Parsing &amp; Readability <span class="tag n">5</span></h3><p>Text extraction, file format, length in words, decorative glyphs and icon fonts, bullet characters.</p></div>
+      <div class="card"><h3>Structure &amp; Sections <span class="tag n">5</span></h3><p>Experience, Education, Skills and Summary headings, plus whether your headings use names parsers recognise.</p></div>
+      <div class="card"><h3>Contact Information <span class="tag n">4</span></h3><p>Email, phone, city/country and a LinkedIn URL — all as body text, not trapped in a page header or an image.</p></div>
+      <div class="card"><h3>Impact &amp; Metrics <span class="tag n">4</span></h3><p>Share of bullets carrying a number, concrete scale figures, bullet length and first-person pronouns.</p></div>
+      <div class="card"><h3>Action Verbs &amp; Language <span class="tag n">3</span></h3><p>Bullets opening on a strong verb, filler and cliché phrases, and repetition across your roles.</p></div>
+      <div class="card"><h3>Keyword Alignment <span class="tag n">4</span></h3><p>Job-ad keyword coverage, named hard skills, the advertised title, and acronyms spelled out once.</p></div>
+      <div class="card"><h3>Length &amp; Readability <span class="tag n">3</span></h3><p>Estimated page count, average sentence length and date-format consistency across roles.</p></div>
+      <div class="card" style="background:var(--pri-soft);border-color:#DED3FF"><h3>Then: Fix in Builder</h3><p>One click sends your parsed resume into the split-screen builder with the flags attached, so you fix them against a live score.</p><a class="more" href="/builder">Open the builder →</a></div>
+      <div class="card" style="background:#0C0F1D;border-color:#0C0F1D"><h3 style="color:#fff">Deterministic, not vibes</h3><p style="color:#AFB4C8">Every check is a rule, not a model opinion. The same resume always scores the same, so you can measure a real improvement.</p></div>
+    </div>
+  </div>
+</section>

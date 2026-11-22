@@ -1,0 +1,48 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fitwise Autopilot · preview (coming soon)</title><meta name="robots" content="noindex">
+<style>
+*{box-sizing:border-box}body{margin:0;font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#17202a;background:#f4f7f6}
+.bar{background:#0b6b58;color:#fff;padding:.7rem 1rem;display:flex;align-items:center;gap:.5rem;font-weight:700}
+.bar .m{background:#fff;color:#0b6b58;border-radius:7px;width:26px;height:26px;display:grid;place-items:center}
+.soon{margin-left:auto;background:#ffd166;color:#4a3800;font-size:.75rem;padding:.2rem .5rem;border-radius:99px}
+.wrap{max-width:480px;margin:0 auto;padding:1rem}
+h2{font-size:1.15rem;margin:.2rem 0 .8rem}.muted{color:#5b6670;font-size:.85rem}
+.tabs{display:flex;gap:.4rem;margin:.6rem 0 1rem}.tabs b{flex:1;text-align:center;padding:.45rem;border-radius:9px;background:#e3ebe8;font-size:.82rem;color:#3b4a45}
+.tabs b.on{background:#0b6b58;color:#fff}
+.card{background:#fff;border:1px solid #dde5e2;border-radius:12px;padding:.8rem .9rem;margin:.55rem 0;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:.5rem}
+.t{font-weight:650}.co{color:#5b6670;font-size:.85rem}
+.sc{font-weight:700;color:#0b6b58;background:#e5f4ef;border-radius:8px;padding:.2rem .45rem;font-size:.85rem}
+.st{font-size:.78rem;font-weight:700;border-radius:99px;padding:.2rem .55rem;white-space:nowrap}
+.ok{background:#dff3e8;color:#11683f}.need{background:#fff1d6;color:#7a5200}.q{background:#e8eef7;color:#2b4a7a}
+.cv{font-size:.8rem;border-left:3px solid #0b6b58;padding-left:.6rem;margin-top:.5rem;color:#333}
+.cv del{color:#a33}.cv ins{color:#0b6b58;text-decoration:none;font-weight:600}
+.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem}.kpi div{background:#fff;border:1px solid #dde5e2;border-radius:12px;padding:.6rem;text-align:center}.kpi b{display:block;font-size:1.3rem;color:#0b6b58}
+.lbl{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:#17202a;color:#fff;font-size:.8rem;padding:.35rem .8rem;border-radius:99px;opacity:.9}
+section{display:none}section.on{display:block}
+</style></head><body>
+<div class="bar"><span class="m">F</span>Fitwise Autopilot<span class="soon">Preview · coming soon</span></div>
+<div class="wrap">
+<div class="tabs"><b data-s="1">1 · Matches</b><b data-s="2">2 · Tailored CV</b><b data-s="3">3 · Tracker</b></div>
+<section id="s1"><h2>Today's matches for your CV</h2><p class="muted">Searched 1,240 company career sites · posted in the last 5 days · sample data</p>
+<div class="card"><div class="row"><div><div class="t">Senior QA Engineer</div><div class="co">Northwind Logistics · Rotterdam · Hybrid</div></div><span class="sc">91%</span></div></div>
+<div class="card"><div class="row"><div><div class="t">Test Automation Lead</div><div class="co">Bluefin Payments · Amsterdam · Remote</div></div><span class="sc">88%</span></div></div>
+<div class="card"><div class="row"><div><div class="t">Quality Engineering Manager</div><div class="co">Orbital Telecom · Utrecht · Hybrid</div></div><span class="sc">84%</span></div></div>
+<div class="card"><div class="row"><div><div class="t">SDET (Playwright)</div><div class="co">Heron Health · Remote, EU</div></div><span class="sc">81%</span></div></div>
+<div class="card"><div class="row"><div><div class="t">QA Lead, Mobile</div><div class="co">Kestrel Travel · Eindhoven</div></div><span class="sc">77%</span></div></div></section>
+<section id="s2"><h2>Tailored CV for each job</h2><p class="muted">Senior QA Engineer · Northwind Logistics · only your own experience, reworded</p>
+<div class="card"><div class="t">Summary</div><div class="cv"><ins>Quality lead for logistics and payments platforms</ins> with 15 years in software testing; builds test strategies that let teams release weekly.</div></div>
+<div class="card"><div class="t">Bluefin Payments · Test Manager</div><div class="cv">• <ins>Moved to the top:</ins> Cut regression time from 3 days to 4 hours with a Playwright + CI pipeline.<br>• Led 9 testers across 3 squads; introduced risk-based test plans.</div></div>
+<div class="card"><div class="t">Skills, reordered for this job</div><div class="cv"><ins>Playwright · CI/CD · API testing</ins> · Test strategy · Jira · SQL</div></div>
+<div class="card"><div class="row"><span class="muted">Missing keywords (not added): Kotlin, Gatling</span></div></div></section>
+<section id="s3"><h2>Application tracker</h2>
+<div class="kpi"><div><b>18</b>applied</div><div><b>3</b>need you</div><div><b>2</b>replies</div></div>
+<div class="card"><div class="row"><div><div class="t">Senior QA Engineer</div><div class="co">Northwind Logistics</div></div><span class="st ok">Applied ✓</span></div></div>
+<div class="card"><div class="row"><div><div class="t">Test Automation Lead</div><div class="co">Bluefin Payments</div></div><span class="st ok">Applied ✓</span></div></div>
+<div class="card"><div class="row"><div><div class="t">Quality Engineering Manager</div><div class="co">Orbital Telecom</div></div><span class="st need">Needs you · captcha</span></div></div>
+<div class="card"><div class="row"><div><div class="t">SDET (Playwright)</div><div class="co">Heron Health</div></div><span class="st q">Reply · interview</span></div></div>
+<div class="card"><div class="row"><div><div class="t">QA Lead, Mobile</div><div class="co">Kestrel Travel</div></div><span class="st need">Needs you · work-permit question</span></div></div></section>
+</div><div class="lbl">Preview – coming soon · sample data</div>
+<script>function show(n){document.querySelectorAll("section").forEach(s=>s.classList.toggle("on",s.id=="s"+n));document.querySelectorAll(".tabs b").forEach(b=>b.classList.toggle("on",b.dataset.s==n));}
+document.querySelectorAll(".tabs b").forEach(b=>b.onclick=()=>show(b.dataset.s));show(+(location.hash.slice(1)||1));addEventListener("hashchange",()=>show(+(location.hash.slice(1)||1)));</script>
+</body></html>

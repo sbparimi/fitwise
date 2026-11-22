@@ -1,0 +1,43 @@
+<!--META {"title":"Cover Letter Studio — Tailored, Styled, Free · Fitwise","desc":"Generate a tailored cover letter from the resume you already built: pick a tone, paste the job ad, edit it live and download a clean PDF that matches your resume styling.","path":"/cover-letter","scripts":"<script src=\"/fw-templates.js\" defer></script>\n<script src=\"/fw-export.js\" defer></script>\n<script src=\"/fw-cover-check.js\" defer></script>\n<script src=\"/fw-cover.js\" defer></script>\n<div id=\"printArea\"></div>"}-->
+<section class="tool-hero wide">
+  <div class="wrap">
+    <h1>Cover Letter Studio</h1>
+    <div class="hero-ticks"><span>Pulls from your resume</span><span>Four tones</span><span>PDF in your resume’s styling</span></div>
+    <p class="lead">It writes from the experience you actually have, in the tone you pick, aimed at one specific role — then you edit every word before it leaves.</p>
+  </div>
+</section>
+<section class="sec" style="padding-top:26px">
+  <div class="wrap cl-shell">
+    <div class="card">
+      <div class="fld"><label for="clRole">Target role</label><input type="text" id="clRole" placeholder="Senior QA Automation Engineer"></div>
+      <div class="fld"><label for="clCompany">Company</label><input type="text" id="clCompany" placeholder="Mollie"></div>
+      <div class="fld"><label for="clManager">Hiring manager <span class="opt">— optional</span></label><input type="text" id="clManager" placeholder="Leave blank for “Dear Hiring Team”"></div>
+      <div class="fld"><label>Tone</label>
+        <div class="tones" id="clTones">
+          <button type="button" data-tone="Professional" aria-pressed="true">Professional</button>
+          <button type="button" data-tone="Confident" aria-pressed="false">Confident</button>
+          <button type="button" data-tone="Concise" aria-pressed="false">Concise</button>
+          <button type="button" data-tone="Executive" aria-pressed="false">Executive</button>
+        </div></div>
+      <div class="fld"><label for="clJd">Job description <span class="opt">— the more you paste, the more specific it gets</span></label>
+        <textarea id="clJd" placeholder="Paste the job ad…"></textarea></div>
+      <div class="fld"><label for="clResume">Your resume <span class="opt">— pulled from the builder</span></label>
+        <select id="clResume"></select></div>
+      <button class="btn block" type="button" id="clGo">Write my cover letter</button>
+      <p class="small muted" style="margin:10px 0 0">Runs on free and open-source models with automatic failover, and on Fitwise’s built-in writer when every provider is busy — so it always returns a letter.</p>
+      <div id="clScoreBox" class="hide" style="margin-top:18px;border-top:1px solid var(--line-2);padding-top:16px"></div>
+    </div>
+    <div>
+      <div class="prev-bar" style="border-radius:14px 14px 0 0;border:1px solid var(--line);border-bottom:0;background:#fff">
+        <b class="small" id="clStatus">Your letter appears here</b><span class="sp"></span>
+        <button class="btn xs ghost" type="button" id="clCopy">Copy</button>
+        <button class="btn xs ghost" type="button" id="clSave">Save</button>
+        <button class="btn xs" type="button" id="clPdf">⬇ PDF</button>
+      </div>
+      <div style="background:#EDEBF6;padding:20px;border-radius:0 0 14px 14px;border:1px solid var(--line);border-top:0">
+        <div class="cl-paper" id="clPaper" contenteditable="true" spellcheck="true"></div>
+      </div>
+      <p class="small muted" style="margin-top:10px">The preview is editable — click into it and change anything before you download.</p>
+    </div>
+  </div>
+</section>

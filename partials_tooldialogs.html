@@ -1,0 +1,18 @@
+<dialog id="dv"><div class="row between"><h3 id="dvtitle">Demo</h3><button class="btn ghost sm" id="dvclose">Close</button></div><div id="dvbody"></div><p class="small" id="dvnote"></p></dialog>
+<dialog id="ea"><div id="eaf"><h3>Join: <span id="eaplan">Autopilot</span></h3><p class="muted">No payment today. We'll email you when it opens.</p><input id="eaemail" type="email" placeholder="you@example.com" required><p class="err" id="eaerr"></p><div class="row"><button class="btn" id="eago">Notify me</button><button class="btn ghost" id="eaclose">Close</button></div></div>
+  <div id="eaok" hidden><h3>You're on the list ✓</h3><p class="muted">We'll email <b id="eaokmail"></b> when it opens. No payment was taken.</p><button class="btn" id="eaclose2">Done</button></div></dialog>
+
+<dialog id="buy"><div id="buyform"><h3>Buy credits</h3><p class="small" id="buyneed"></p>
+  <div class="packpick">
+    <label><input type="radio" name="pack" value="starter" checked><span><b>Starter · 10 credits</b> $5</span></label>
+    <label><input type="radio" name="pack" value="plus"><span><b>Plus · 30 credits</b> $12</span></label>
+    <label><input type="radio" name="pack" value="power"><span><b>Power · 70 credits</b> $25</span></label>
+  </div>
+  <p class="note">Card payments are coming soon. <b>No payment is taken today.</b> Leave your email and we'll tell you the moment credit packs go live.</p>
+  <input id="buyemail" type="email" placeholder="you@example.com" required><p class="err" id="buyerr"></p>
+  <div class="row"><button class="btn" id="buygo">Get early access</button><button class="btn ghost" id="buyclose">Close</button></div></div>
+  <div id="buyok" hidden><h3>You're on the list ✓</h3><p class="muted">We'll email <b id="buyokmail"></b> when credit packs open. No payment was taken.</p><button class="btn" id="buyclose2">Done</button></div></dialog>
+
+<dialog id="pv" class="pvdlg"><div class="pvhead"><h3 id="pvtitle"></h3><button class="x" id="pvclose" aria-label="Close">×</button></div>
+  <div id="pvbody" class="pvbody" oncontextmenu="return false"></div>
+  <div class="pvfoot"><span class="small">Free preview (watermarked)</span><button class="btn sm" id="pvdl">Download – 1 credit ($0.50)</button></div></dialog>

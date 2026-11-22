@@ -1,0 +1,20 @@
+# Secrets & environment
+ADMIN_SECRET.txt
+.env
+.env.*
+
+# Dependencies & build artifacts
+node_modules/
+.wrangler/
+
+# Local verification & feeds
+shots/
+testdata/
+jobs_feed/
+
+# Backups & local DBs
+*.bak
+*.db
+*.sqlite
+*.sqlite3
+.DS_Store
