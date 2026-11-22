@@ -350,19 +350,22 @@ async function routeBuild1(p, req, env, url) {
     const name = String(b.name || "").trim().slice(0, 80);
     if (!EMAIL_RE.test(email)) return json({ error: "Enter a valid email address." }, 400);
 
+    const ip = req.headers.get("cf-connecting-ip") || "0", day = amsDay();
+    const eh = await sha(email);
+    const kI = "q:otp:" + (await sha(ip)).slice(0, 20) + ":" + day;
+    if ((await kvNum(env, kI)) >= 20) {
+      return json({ error: "Too many sign-in code requests from this network. Try again later.", code: "otp_rate_limited" }, 429);
+    }
+    await bump(env, kI, 86400);
+
     const mailCfg = await getAppCfg(env, "mail_provider");
     if (!mailCfg || !mailCfg.resend_key) {
       return json({ error: "Email sign-in is temporarily unavailable. You can still use the resume builder and ATS checker without an account.", code: "email_delivery_unavailable" }, 503);
     }
-
-    const ip = req.headers.get("cf-connecting-ip") || "0", day = amsDay();
-    const eh = await sha(email);
-    const kI = "q:otp:" + (await sha(ip)).slice(0, 20) + ":" + day;
     const kE = "q:otp:email:" + eh + ":" + day;
-    if ((await kvNum(env, kI)) >= 20 || (await kvNum(env, kE)) >= 5) {
-      return json({ error: "Too many sign-in code requests. Try again later.", code: "otp_rate_limited" }, 429);
+    if ((await kvNum(env, kE)) >= 5) {
+      return json({ error: "Too many sign-in code requests for this email. Try again later.", code: "otp_rate_limited" }, 429);
     }
-    await bump(env, kI, 86400);
     await bump(env, kE, 86400);
 
     const code = String(100000 + (crypto.getRandomValues(new Uint32Array(1))[0] % 900000));
