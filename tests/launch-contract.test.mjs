@@ -33,7 +33,9 @@ test("ATS share reports do not persist or return resume text", () => {
   const route = api.slice(start, end);
   assert.ok(route.includes('reportJson, "", "", Date.now()'));
   assert.ok(!route.includes("resume_text: row.resume_text"));
-  assert.ok(api.includes("UPDATE ats_scans SET resume_text = '', jd_text = ''"));
+  assert.ok(api.includes("UPDATE ats_scans SET filename = CASE"));
+  assert.ok(api.includes("json_set(CASE WHEN json_valid(report_json)"));
+  assert.ok(api.includes("resume_text = '', jd_text = ''"));
   assert.ok(api.includes("DELETE FROM ats_scans WHERE created_at < ?"));
   assert.ok(route.includes("scan_(?:[a-f0-9]{14}|[a-f0-9]{32})"));
   assert.ok(route.includes('crypto.randomUUID().replace(/-/g, "")'));
