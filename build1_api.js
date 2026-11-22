@@ -22,7 +22,7 @@ async function cleanupAtsScans(db) {
   const now = Date.now();
   if (now - _atsScanCleanupAt < 3600000) return;
   await db.prepare("UPDATE ats_scans SET filename = CASE WHEN lower(COALESCE(filename, '')) LIKE '%.pdf' THEN 'Resume.pdf' WHEN lower(COALESCE(filename, '')) LIKE '%.docx' THEN 'Resume.docx' WHEN lower(COALESCE(filename, '')) LIKE '%.txt' THEN 'Resume.txt' ELSE 'Resume' END, report_json = json_set(CASE WHEN json_valid(report_json) THEN report_json ELSE '{}' END, '$.meta.filename', CASE WHEN lower(COALESCE(filename, '')) LIKE '%.pdf' THEN 'Resume.pdf' WHEN lower(COALESCE(filename, '')) LIKE '%.docx' THEN 'Resume.docx' WHEN lower(COALESCE(filename, '')) LIKE '%.txt' THEN 'Resume.txt' ELSE 'Resume' END), resume_text = '', jd_text = '' WHERE resume_text <> '' OR jd_text <> '' OR COALESCE(filename, '') NOT IN ('Resume.pdf','Resume.docx','Resume.txt','Resume') OR CASE WHEN json_valid(report_json) THEN COALESCE(json_extract(report_json, '$.meta.filename'), '') ELSE '' END NOT IN ('Resume.pdf','Resume.docx','Resume.txt','Resume')").run();
-  await db.prepare("DELETE FROM ats_scans WHERE created_at < ?").bind(now - 30 * 86400000).run();
+  await db.prepare("DELETE FROM ats_scans WHERE created_at < ?").bind(now - 90 * 86400000).run();
   _atsScanCleanupAt = now;
 }
 async function build1Db(env) {
@@ -446,7 +446,7 @@ async function routeBuild1(p, req, env, url) {
       if (!/^scan_(?:[a-f0-9]{14}|[a-f0-9]{32})$/i.test(id)) return json({ error: "scan not found" }, 404);
       const row = await db.prepare("SELECT id, filename, score, report_json, created_at FROM ats_scans WHERE id = ?").bind(id).first();
       if (!row) return json({ error: "scan not found" }, 404);
-      if (Number(row.created_at || 0) < Date.now() - 30 * 86400000) {
+      if (Number(row.created_at || 0) < Date.now() - 90 * 86400000) {
         await db.prepare("DELETE FROM ats_scans WHERE id = ?").bind(id).run();
         return json({ error: "scan not found" }, 404);
       }
