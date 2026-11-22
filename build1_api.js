@@ -394,7 +394,7 @@ async function routeBuild1(p, req, env, url) {
     const b = await req.json().catch(() => ({}));
     const email = String(b.email || "").trim().toLowerCase();
     const code = String(b.code || "").trim();
-    if (!EMAIL_RE.test(email) || !/^\\d{6}$/.test(code)) return json({ error: "Enter a valid email and 6-digit code." }, 400);
+    if (!EMAIL_RE.test(email) || !/^\d{6}$/.test(code)) return json({ error: "Enter a valid email and 6-digit code." }, 400);
     const eh = await sha(email);
     const raw = await store(env).get("otp:" + eh);
     if (!raw) return json({ error: "Code expired or not found. Request a new code." }, 401);
@@ -440,7 +440,7 @@ async function routeBuild1(p, req, env, url) {
     await cleanupAtsScans(db);
     if (req.method === "GET") {
       const id = String(url.searchParams.get("id") || "").trim();
-      if (!/^scan_[a-f0-9]{14}$/i.test(id)) return json({ error: "scan not found" }, 404);
+      if (!/^scan_[a-f0-9]{32}$/i.test(id)) return json({ error: "scan not found" }, 404);
       const row = await db.prepare("SELECT id, filename, score, report_json, created_at FROM ats_scans WHERE id = ?").bind(id).first();
       if (!row) return json({ error: "scan not found" }, 404);
       return json({ id: row.id, filename: row.filename, score: row.score, report: JSON.parse(row.report_json || "{}"), created_at: row.created_at });
@@ -448,7 +448,7 @@ async function routeBuild1(p, req, env, url) {
     if (req.method === "POST") {
       const b = await req.json().catch(() => ({}));
       const s = await currentSession(req, env);
-      const id = "scan_" + crypto.randomUUID().replace(/-/g, "").slice(0, 14);
+      const id = "scan_" + crypto.randomUUID().replace(/-/g, "");
       const report = b.report || {};
       await db.prepare("INSERT INTO ats_scans (id, sub, filename, score, report_json, resume_text, jd_text, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind(
         id, s ? s.sub : null, String(b.filename || "Pasted Resume").slice(0, 120), Number(report.score || 0),
