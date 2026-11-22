@@ -15,6 +15,7 @@ const fwJs = read("../site/fw.js");
 const footer = read("../partials_footer.html");
 const dashboard = read("../front/dashboard.html");
 const signin = read("../front/signin.html");
+const build = read("../build.sh");
 const templates = read("../front/templates.html");
 
 test("email OTP never exposes the code and requires successful delivery", () => {
@@ -105,6 +106,11 @@ test("cloud sync and optional sign-in disclosures match the implementation", () 
   assert.ok(signin.includes("Sign-in is optional"));
   assert.ok(signin.includes("Email verification is available only when email delivery is configured"));
   assert.ok(!signin.includes("Email codes work everywhere"));
+});
+
+test("Vercel static output does not expose the compiled Worker bundle", () => {
+  assert.ok(build.includes('if [ "${VERCEL:-}" = "1" ]'));
+  assert.ok(build.includes("rm -f site/worker.mjs site/worker.mjs.map"));
 });
 
 test("public marketing avoids ATS vendor certification claims", () => {
