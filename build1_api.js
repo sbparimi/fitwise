@@ -335,55 +335,81 @@ async function routeBuild1(p, req, env, url) {
     return json({ signed_in: true, email: s.key ? "admin" : s.email, name: s.name || "", isAdmin: !!s.isAdmin });
   }
 
-  // 2. Email OTP Passwordless Sign-In (works in LinkedIn in-app browser & everywhere!)
+  // 2. Email OTP Passwordless Sign-In. Never return verification codes to the browser.
   if (p === "/api/auth/email/request" && req.method === "POST") {
     const b = await req.json().catch(() => ({}));
     const email = String(b.email || "").trim().toLowerCase();
     const name = String(b.name || "").trim().slice(0, 80);
     if (!EMAIL_RE.test(email)) return json({ error: "Enter a valid email address." }, 400);
+
+    const mailCfg = await getAppCfg(env, "mail_provider");
+    if (!mailCfg || !mailCfg.resend_key) {
+      return json({ error: "Email sign-in is temporarily unavailable. You can still use the resume builder and ATS checker without an account.", code: "email_delivery_unavailable" }, 503);
+    }
+
     const ip = req.headers.get("cf-connecting-ip") || "0", day = amsDay();
-    const kI = "q:otp:" + (await sha(ip)).slice(0, 20) + ":" + day;
-    if ((await kvNum(env, kI)) >= 20) return json({ error: "Too many sign-in codes requested today. Try again tomorrow." }, 429);
-    await bump(env, kI, 172800);
-    const code = String(100000 + (crypto.getRandomValues(new Uint32Array(1))[0] % 900000));
     const eh = await sha(email);
-    await store(env).put("otp:" + eh, JSON.stringify({ code, email, name, at: Date.now() }), { expirationTtl: 600 });
-    // Check if Resend email key is configured in app_config
-    let emailed = false;
+    const kI = "q:otp:" + (await sha(ip)).slice(0, 20) + ":" + day;
+    const kE = "q:otp:email:" + eh + ":" + day;
+    if ((await kvNum(env, kI)) >= 20 || (await kvNum(env, kE)) >= 5) {
+      return json({ error: "Too many sign-in code requests. Try again later.", code: "otp_rate_limited" }, 429);
+    }
+    await bump(env, kI, 86400);
+    await bump(env, kE, 86400);
+
+    const code = String(100000 + (crypto.getRandomValues(new Uint32Array(1))[0] % 900000));
+    const expiresAt = Date.now() + 600000;
+    await store(env).put("otp:" + eh, JSON.stringify({ code, email, name, at: Date.now(), expires_at: expiresAt, attempts: 0 }), { expirationTtl: 600 });
+
+    let sent = false;
     try {
-      const mailCfg = await getAppCfg(env, "mail_provider");
-      if (mailCfg && mailCfg.resend_key) {
-        const mr = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: { authorization: "Bearer " + mailCfg.resend_key, "content-type": "application/json" },
-          body: JSON.stringify({
-            from: mailCfg.from || "Fitwise <noreply@fitwise.sites.tab.bot>",
-            to: [email],
-            subject: `Your Fitwise sign-in code: ${code}`,
-            text: `Your 6-digit Fitwise sign-in code is ${code}. It expires in 10 minutes.`
-          })
-        });
-        emailed = mr.ok;
-      }
+      const mr = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { authorization: "Bearer " + mailCfg.resend_key, "content-type": "application/json" },
+        body: JSON.stringify({
+          from: mailCfg.from || "Fitwise <noreply@fitwise.sites.tab.bot>",
+          to: [email],
+          subject: `Your Fitwise sign-in code: ${code}`,
+          text: `Your 6-digit Fitwise sign-in code is ${code}. It expires in 10 minutes.`
+        })
+      });
+      sent = mr.ok;
     } catch {}
-    return json({
-      ok: true,
-      emailed,
-      instant_code: emailed ? undefined : code,
-      message: emailed ? `We sent a 6-digit code to ${email}.` : `Instant verification code generated for ${email} (email delivery not configured yet).`
-    });
+    if (!sent) {
+      await store(env).delete("otp:" + eh);
+      return json({ error: "We could not deliver your sign-in code. Try again later or continue without an account.", code: "email_delivery_failed" }, 502);
+    }
+    return json({ ok: true, emailed: true, message: `We sent a 6-digit code to ${email}. It expires in 10 minutes.` });
   }
 
   if (p === "/api/auth/email/verify" && req.method === "POST") {
     const b = await req.json().catch(() => ({}));
     const email = String(b.email || "").trim().toLowerCase();
     const code = String(b.code || "").trim();
-    if (!EMAIL_RE.test(email) || !/^\d{6}$/.test(code)) return json({ error: "Enter a valid email and 6-digit code." }, 400);
+    if (!EMAIL_RE.test(email) || !/^\\d{6}$/.test(code)) return json({ error: "Enter a valid email and 6-digit code." }, 400);
     const eh = await sha(email);
     const raw = await store(env).get("otp:" + eh);
     if (!raw) return json({ error: "Code expired or not found. Request a new code." }, 401);
-    const rec = JSON.parse(raw);
-    if (rec.code !== code) return json({ error: "Incorrect code. Please double-check and try again." }, 401);
+    let rec;
+    try { rec = JSON.parse(raw); } catch { await store(env).delete("otp:" + eh); return json({ error: "Code expired or not found. Request a new code." }, 401); }
+    const expiresAt = Number(rec.expires_at) || (Number(rec.at) + 600000);
+    if (!expiresAt || Date.now() > expiresAt) {
+      await store(env).delete("otp:" + eh);
+      return json({ error: "Code expired. Request a new code." }, 401);
+    }
+    if (Number(rec.attempts || 0) >= 5) {
+      await store(env).delete("otp:" + eh);
+      return json({ error: "Too many incorrect attempts. Request a new code." }, 429);
+    }
+    if (rec.code !== code) {
+      rec.attempts = Number(rec.attempts || 0) + 1;
+      if (rec.attempts >= 5) {
+        await store(env).delete("otp:" + eh);
+        return json({ error: "Too many incorrect attempts. Request a new code." }, 429);
+      }
+      await store(env).put("otp:" + eh, JSON.stringify(rec), { expirationTtl: Math.max(1, Math.ceil((expiresAt - Date.now()) / 1000)) });
+      return json({ error: "Incorrect code. Please double-check and try again." }, 401);
+    }
     await store(env).delete("otp:" + eh);
     const sub = "email:" + eh.slice(0, 28);
     const db = await usersDb(env);
