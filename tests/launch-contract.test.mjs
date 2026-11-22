@@ -47,6 +47,8 @@ test("ATS share reports do not persist or return resume text", () => {
   assert.ok(api.includes("Date.now() - 90 * 86400000"));
   assert.ok(api.includes("DELETE FROM resumes WHERE COALESCE(updated_at, created_at, 0) < ?"));
   assert.ok(api.includes("await cleanupResumes(db)"));
+  assert.ok(terms.includes("Shareable ATS reports: up to 90 days."));
+  assert.ok(terms.includes("Cloud-synced resumes and stored CV uploads: up to 90 days"));
   assert.ok(api.includes("Number.isFinite(scoreValue)"));
   assert.ok(route.includes("safeScore"));
   assert.ok(route.includes("const safeReport = {"));
