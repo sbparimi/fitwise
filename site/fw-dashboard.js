@@ -49,8 +49,9 @@ function drawResumes(){
         FW.toast("Choose “Save as PDF” in the print dialog"); }
       if(act==="docx"){ FW.exportDocx(r.doc, r.theme||FW.emptyTheme()); }
       if(act==="del"){
-        if(confirm("Delete “" + (r.title||"this resume") + "”? This removes it from this browser and your account.")){
-          FW.store.remove(id); drawResumes(); FW.toast("Deleted");
+        if(confirm("Delete “" + (r.title||"this resume") + "”? This removes it from this browser and requests deletion from your account if cloud sync is enabled.")){
+          if(!FW.store.remove(id)){ FW.toast("Could not delete this resume from browser storage."); return; }
+          drawResumes(); FW.toast("Deleted from this browser");
         }
       }
       if(act!=="del" && act!=="pdf" && act!=="docx") return;
