@@ -17,6 +17,7 @@
 - The resume editor reads supported files in the browser and saves working copies in browser local storage.
 - ATS checks run in the browser. A scan creates a shareable report containing the generated diagnostic and a generic file-type label; source resume text, job-description text and the original file name are not stored.
 - Shareable ATS reports expire after 90 days. Public report creation is rate-limited.
+- Cloud-synced resumes and stored CV uploads are automatically purged after 90 days of inactivity/age; users can delete them sooner.
 - Email OTP is optional and requires a configured Resend sender. If delivery is not configured or fails, the API returns an error and never returns a verification code to the browser.
 - The core builder and checker do not require sign-in. Cloud sync and AI enhancement are separate optional features.
 - The ATS-style score is not a certification or integration with any employer ATS.
