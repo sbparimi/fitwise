@@ -110,7 +110,7 @@ function init(){
     setTimeout(function(){
       btn.classList.remove("is-busy"); btn.textContent = "Scan my resume free";
       render(r);
-      FW.api("/api/ats/scan", {filename: state.filename, report: r, resume_text: text, jd_text: (jd.value||"").trim()})
+      FW.api("/api/ats/scan", {filename: state.filename, report: r})
         .then(function(j){
           if(j && j.scan_id){
             state.scanId = j.scan_id;
@@ -130,8 +130,8 @@ function init(){
     rep.classList.remove("hide"); idle.classList.add("hide");
     FW.api("/api/ats/scan?id=" + encodeURIComponent(sid)).then(function(j){
       if(j && j.report && j.report.groups){
-        state.filename = j.filename || "Shared scan"; state.text = j.resume_text || ""; state.scanId = sid;
-        cv.value = state.text; jd.value = j.jd_text || "";
+        state.filename = j.filename || "Shared scan"; state.text = ""; state.scanId = sid;
+        cv.value = ""; jd.value = "";
         render(j.report);
         var sh = document.getElementById("shareUrl"); if(sh) sh.value = location.origin + "/ats-checker?scan_id=" + sid;
       } else {
