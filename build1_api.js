@@ -21,7 +21,7 @@ let _atsScanCleanupAt = 0;
 async function cleanupAtsScans(db) {
   const now = Date.now();
   if (now - _atsScanCleanupAt < 3600000) return;
-  await db.prepare("UPDATE ats_scans SET resume_text = '', jd_text = '' WHERE resume_text <> '' OR jd_text <> ''").run();
+  await db.prepare("UPDATE ats_scans SET filename = CASE WHEN lower(COALESCE(filename, '')) LIKE '%.pdf' THEN 'Resume.pdf' WHEN lower(COALESCE(filename, '')) LIKE '%.docx' THEN 'Resume.docx' WHEN lower(COALESCE(filename, '')) LIKE '%.txt' THEN 'Resume.txt' ELSE 'Resume' END, report_json = json_set(CASE WHEN json_valid(report_json) THEN report_json ELSE '{}' END, '$.meta.filename', CASE WHEN lower(COALESCE(filename, '')) LIKE '%.pdf' THEN 'Resume.pdf' WHEN lower(COALESCE(filename, '')) LIKE '%.docx' THEN 'Resume.docx' WHEN lower(COALESCE(filename, '')) LIKE '%.txt' THEN 'Resume.txt' ELSE 'Resume' END), resume_text = '', jd_text = '' WHERE resume_text <> '' OR jd_text <> '' OR COALESCE(filename, '') NOT IN ('Resume.pdf','Resume.docx','Resume.txt','Resume') OR COALESCE(json_extract(report_json, '$.meta.filename'), '') NOT IN ('Resume.pdf','Resume.docx','Resume.txt','Resume')").run();
   await db.prepare("DELETE FROM ats_scans WHERE created_at < ?").bind(now - 30 * 86400000).run();
   _atsScanCleanupAt = now;
 }
