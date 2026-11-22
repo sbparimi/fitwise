@@ -18,9 +18,9 @@ This is a role-based engineering review record. It is not a third-party audit or
 
 **Status: Automated/static pass; end-to-end pass pending.**
 
-- Latest GitHub Actions run #97: build succeeded, 9/9 launch contract tests passed, Python build scripts compiled.
+- GitHub Actions run #97 on commit 69010: build succeeded, 9/9 launch contract tests passed, Python build scripts compiled. A later contract test was added for Vercel Worker-bundle exclusion; a fresh Actions run for that final change has not been observed yet. The shell conditional was syntax-checked separately.
 - Public preview routes previously checked returned HTTP 200: homepage, builder, ATS checker, templates, sign-in, dashboard, privacy and terms.
-- The Vercel preview is a static frontend. Its API routes return 404 by design; this does not validate the Cloudflare backend.
+- The Vercel preview is a static frontend. Its API routes return 404 by design; this does not validate the Cloudflare backend. The existing preview also exposes /worker.mjs; the branch now removes that bundle from future Vercel builds, but the preview has not been redeployed yet.
 - Still required: interactive desktop/mobile journeys, keyboard/screen-reader checks, PDF/DOCX/TXT fixture imports, PDF/DOCX exports, and real Cloudflare API/D1 tests.
 
 ## Security and privacy pass
