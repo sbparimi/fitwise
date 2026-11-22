@@ -45,9 +45,11 @@ FW.store = {
     rec.updated_at = Date.now();
     if(!rec.created_at) rec.created_at = rec.updated_at;
     if(i>=0) all[i]=rec; else all.unshift(rec);
-    LS.set(RKEY, all.slice(0,40));
+    if(!LS.set(RKEY, all.slice(0,40))) return null;
     FW.store.setActive(rec.id);
-    FW.cloud.push(rec);
+    if(FW.cloud.me) FW.cloud.push(rec).then(function(ok){
+      if(!ok) FW.toast("Resume saved in this browser, but cloud sync did not complete.");
+    }).catch(function(){ FW.toast("Resume saved in this browser, but cloud sync did not complete."); });
     return rec;
   },
   remove:function(id){ LS.set(RKEY, FW.store.all().filter(function(r){ return r.id!==id; }));
