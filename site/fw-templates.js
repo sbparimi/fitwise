@@ -1,4 +1,4 @@
-/* Fitwise resume templates — 20 genuinely distinct, ATS-tested layouts. Pure HTML/CSS so the PDF export
+/* Fitwise resume templates — 20 distinct, structured layouts. Pure HTML/CSS so the PDF export
    is real selectable vector text, not an image. Each template declares a layout engine + its own CSS. */
 (function(){
 "use strict";
