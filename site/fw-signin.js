@@ -18,9 +18,9 @@ function init(){
     var b = this;
     FW.api("/api/auth/email/request", {email: email}).then(function(j){
       b.classList.remove("is-busy"); b.textContent = "Resend the code";
-      if(j && (j.ok || j.sent)){ $("codeBox").classList.remove("hide"); $("codeIn").focus();
+      if(j && j.ok && j.emailed){ $("codeBox").classList.remove("hide"); $("codeIn").focus();
         msg.textContent = "Code sent to " + email + ". It is good for 10 minutes."; }
-      else msg.textContent = (j && j.error) || "Could not send a code right now. Try the dashboard’s Google sign-in instead.";
+      else { $("codeBox").classList.add("hide"); msg.textContent = (j && j.error) || "Email sign-in is unavailable. You can continue without an account."; }
     }).catch(function(){ b.classList.remove("is-busy"); b.textContent = "Email me a 6-digit code"; msg.textContent = "Network error — try again."; });
   });
   $("codeGo").addEventListener("click", function(){
