@@ -15,6 +15,8 @@ const fwJs = read("../site/fw.js");
 const footer = read("../partials_footer.html");
 const dashboard = read("../front/dashboard.html");
 const signin = read("../front/signin.html");
+const signinJs = read("../site/fw-signin.js");
+const googleAuth = read("../events.js");
 const build = read("../build.sh");
 const templates = read("../front/templates.html");
 
@@ -108,6 +110,17 @@ test("cloud sync and optional sign-in disclosures match the implementation", () 
   assert.ok(signin.includes("Sign-in is optional"));
   assert.ok(signin.includes("Email verification is available only when email delivery is configured"));
   assert.ok(!signin.includes("Email codes work everywhere"));
+});
+
+test("Google sign-in is wired to the verified server-side identity flow", () => {
+  assert.ok(signin.includes("accounts.google.com/gsi/client"));
+  assert.ok(signin.includes('id="googleBtn"'));
+  assert.ok(signinJs.includes('FW.api("/api/auth/config")'));
+  assert.ok(signinJs.includes('FW.api("/api/auth/google"'));
+  assert.ok(signinJs.includes("google.accounts.id.initialize"));
+  assert.ok(signinJs.includes("google.accounts.id.renderButton"));
+  assert.ok(googleAuth.includes('if (p === "/api/auth/google" && req.method === "POST")'));
+  assert.ok(googleAuth.includes("verifyGoogleIdToken(b.credential"));
 });
 
 test("Vercel static output does not expose the compiled Worker bundle", () => {
