@@ -48,11 +48,19 @@ var score = FW.debounce(function(){
 }, 320);
 var repaint = FW.debounce(paint, 180);
 
+var storageWarningShown = false;
 function save(quiet){
   rec.title = ($("resTitle").value||"").trim() || "Untitled resume";
-  FW.store.save(rec);
-  if(!quiet) FW.toast("Saved in this browser" + (FW.cloud.me ? " and synced to your account" : ""));
+  var stored = FW.store.save(rec);
+  if(!stored){
+    if(!storageWarningShown) FW.toast("Browser storage is unavailable or full. Export a copy before continuing.");
+    storageWarningShown = true;
+    return false;
+  }
+  storageWarningShown = false;
+  if(!quiet) FW.toast("Saved in this browser");
   renderLocalList();
+  return true;
 }
 var autosave = FW.debounce(function(){ save(true); }, 1200);
 function touched(){ repaint(); autosave(); }
