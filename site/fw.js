@@ -8,6 +8,8 @@
   }
   var consentBanner = D.getElementById("fwCookieNotice");
   if(consentBanner && !document.cookie.split("; ").some(function(x){ return x.indexOf("fw_consent=") === 0; })) consentBanner.hidden = false;
+  var cookieSettings = D.getElementById("fwCookieSettings");
+  if(cookieSettings) cookieSettings.addEventListener("click", function(e){ e.preventDefault(); if(consentBanner) consentBanner.hidden = false; });
   function hit(t, o, m){
     if(!analyticsAllowed()) return;
     try {
