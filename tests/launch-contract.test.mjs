@@ -65,6 +65,7 @@ test("ATS report UI sends only the generated report to persistence", () => {
   assert.ok(atsUi.includes('FW.api("/api/ats/scan", {filename: state.filename, report: r})'));
   assert.ok(!atsUi.includes("resume_text: text"));
   assert.ok(!atsUi.includes("jd_text:"));
+  assert.ok(atsUi.includes("text.length > 50000"));
 });
 
 test("ATS share failures are not presented as valid links", () => {
