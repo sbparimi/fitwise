@@ -410,9 +410,9 @@ FW.readFileText = function(file){
   if(file.size > 10 * 1024 * 1024) return Promise.reject(new Error("Files must be 10 MB or smaller."));
   var name = (file.name||"").toLowerCase();
   var task;
-  if(/\\.txt$/.test(name)) task = file.text();
-  else if(/\\.docx$/.test(name)) task = FW.docxText(file);
-  else if(/\\.pdf$/.test(name)) task = FW.pdfText(file);
+  if(/\.txt$/.test(name)) task = file.text();
+  else if(/\.docx$/.test(name)) task = FW.docxText(file);
+  else if(/\.pdf$/.test(name)) task = FW.pdfText(file);
   else return Promise.reject(new Error("Unsupported file type. Upload a PDF, DOCX or TXT file."));
   return Promise.resolve(task).then(function(text){
     text = String(text || "");
