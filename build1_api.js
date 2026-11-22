@@ -456,19 +456,53 @@ async function routeBuild1(p, req, env, url) {
       const b = await req.json().catch(() => ({}));
       const report = b.report;
       if (!report || typeof report !== "object" || !Array.isArray(report.groups)) return json({ error: "Invalid ATS report." }, 400);
-      const reportJson = JSON.stringify(report);
-      if (reportJson.length > 60000) return json({ error: "ATS report is too large." }, 413);
+      const originalName = String(b.filename || "").toLowerCase();
+      const extension = originalName.endsWith(".pdf") ? ".pdf" : originalName.endsWith(".docx") ? ".docx" : originalName.endsWith(".txt") ? ".txt" : "";
+      const safeFilename = "Resume" + extension;
       const scoreValue = Number(report.score);
       const safeScore = Number.isFinite(scoreValue) ? Math.max(0, Math.min(100, scoreValue)) : 0;
+      const safeNumber = value => { const n = Number(value); return Number.isFinite(n) ? Math.max(0, Math.min(10000, Math.round(n))) : 0; };
+      const safePct = value => { const n = Number(value); return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 0; };
+      const safeReport = {
+        score: safeScore,
+        format_score: safePct(report.format_score),
+        content_score: safePct(report.content_score),
+        keyword_score: report.keyword_score == null ? null : safePct(report.keyword_score),
+        groups: report.groups.slice(0, 10).map(group => ({
+          name: String(group && group.name || "").slice(0, 80),
+          checks: (Array.isArray(group && group.checks) ? group.checks : []).slice(0, 40).map(check => ({
+            id: String(check && check.id || "").slice(0, 64),
+            title: String(check && check.title || "").slice(0, 120),
+            status: ["pass", "warn", "fail"].includes(check && check.status) ? check.status : "warn",
+            detail: String(check && check.detail || "").slice(0, 600)
+          }))
+        })),
+        total_checks: safeNumber(report.total_checks),
+        passed: safeNumber(report.passed),
+        warnings: safeNumber(report.warnings),
+        failed: safeNumber(report.failed),
+        keywords: report.keywords && typeof report.keywords === "object" ? {
+          have: (Array.isArray(report.keywords.have) ? report.keywords.have : []).slice(0, 30).map(value => String(value).slice(0, 80)),
+          missing: (Array.isArray(report.keywords.missing) ? report.keywords.missing : []).slice(0, 30).map(value => String(value).slice(0, 80)),
+          pct: safePct(report.keywords.pct),
+          total: safeNumber(report.keywords.total)
+        } : null,
+        meta: {
+          filename: safeFilename,
+          words: safeNumber(report.meta && report.meta.words),
+          bullets: safeNumber(report.meta && report.meta.bullets),
+          pages: safeNumber(report.meta && report.meta.pages),
+          scanned_at: String(report.meta && report.meta.scanned_at || "").slice(0, 40)
+        }
+      };
+      const reportJson = JSON.stringify(safeReport);
+      if (reportJson.length > 60000) return json({ error: "ATS report is too large." }, 413);
       const ip = req.headers.get("cf-connecting-ip") || "0";
       const rateKey = "q:ats-share:" + (await sha(ip)).slice(0, 20) + ":" + amsDay();
       if ((await kvNum(env, rateKey)) >= 50) return json({ error: "Share report limit reached. You can still review your scan in this browser." }, 429);
       await bump(env, rateKey, 86400);
       const s = await currentSession(req, env);
       const id = "scan_" + crypto.randomUUID().replace(/-/g, "");
-      const originalName = String(b.filename || "").toLowerCase();
-      const extension = originalName.endsWith(".pdf") ? ".pdf" : originalName.endsWith(".docx") ? ".docx" : originalName.endsWith(".txt") ? ".txt" : "";
-      const safeFilename = "Resume" + extension;
       await db.prepare("INSERT INTO ats_scans (id, sub, filename, score, report_json, resume_text, jd_text, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind(
         id, s ? s.sub : null, safeFilename, safeScore,
         reportJson, "", "", Date.now()
