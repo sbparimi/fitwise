@@ -10,8 +10,8 @@ const GATED_API = ["/api/credits", "/api/cover", "/api/download"];
 const REQ = new WeakMap();
 function rid(n) { const b = new Uint8Array(n); crypto.getRandomValues(b); return [...b].map(x => (x % 36).toString(36)).join(""); }
 function reqCtx(req, env, ctx) {
-  const v = cookieOf(req, VID_COOKIE); const ok = !!v && /^[a-z0-9-]{16,40}$/.test(v);
-  const c = { env, ctx, vid: ok ? v : rid(20), newVid: !ok, sess: undefined }; REQ.set(req, c); return c;
+  const v = cookieOf(req, VID_COOKIE);
+  const c = { env, ctx, vid: rid(20), clearVid: !!v, sess: undefined }; REQ.set(req, c); return c;
 }
 function amsDay(ts) { try { return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Amsterdam" }).format(new Date(ts || Date.now())); } catch (e) { return new Date(ts || Date.now()).toISOString().slice(0, 10); } }
 async function adminEmails(env) {
@@ -712,7 +712,7 @@ export default {
     const c = reqCtx(req, env, ctx);
     let res;
     try { res = await fwRoute(req, env, ctx); } catch (e) { res = new Response("Something went wrong on our side. Please refresh.", { status: 500, headers: { "content-type": "text/plain; charset=utf-8" } }); }
-    if (c.newVid && res && !isBot(req.headers.get("user-agent") || "")) { try { res = new Response(res.body, res); res.headers.append("set-cookie", `${VID_COOKIE}=${c.vid}; Path=/; Max-Age=31536000; Secure; SameSite=Lax`); } catch (e) {} }
+    if (c.clearVid && res) { try { res = new Response(res.body, res); res.headers.append("set-cookie", `${VID_COOKIE}=; Path=/; Max-Age=0; Secure; SameSite=Lax`); } catch (e) {} }
     return res;
   }
 };
