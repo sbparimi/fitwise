@@ -10,6 +10,7 @@ const builderPage = read("../front/builder.html");
 const atsPage = read("../front/ats-checker.html");
 const home = read("../front/index.html");
 const terms = read("../build_pages.py");
+const templates = read("../front/templates.html");
 
 test("email OTP never exposes the code and requires successful delivery", () => {
   assert.ok(!api.includes("instant_code"));
@@ -64,6 +65,7 @@ test("resume saves do not report success when browser storage fails", () => {
 
 test("public marketing avoids ATS vendor certification claims", () => {
   assert.ok(!home.includes("Tested Against</span> Workday"));
+  assert.ok(!templates.includes("ATS-Tested"));
   assert.ok(home.includes("not certification or a guarantee of acceptance"));
   assert.ok(terms.includes("not certified by, integrated with or endorsed by Workday"));
 });
