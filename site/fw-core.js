@@ -406,11 +406,20 @@ FW.ring = function(el, value, label){
 
 /* ---------------- file text extraction (PDF / DOCX / TXT) ---------------- */
 FW.readFileText = function(file){
+  if(!file || typeof file.size !== "number") return Promise.reject(new Error("Choose a PDF, DOCX or TXT file."));
+  if(file.size > 10 * 1024 * 1024) return Promise.reject(new Error("Files must be 10 MB or smaller."));
   var name = (file.name||"").toLowerCase();
-  if(/\.(txt|md|csv)$/.test(name)) return file.text();
-  if(/\.docx$/.test(name)) return FW.docxText(file);
-  if(/\.pdf$/.test(name)) return FW.pdfText(file);
-  return file.text();
+  var task;
+  if(/\\.txt$/.test(name)) task = file.text();
+  else if(/\\.docx$/.test(name)) task = FW.docxText(file);
+  else if(/\\.pdf$/.test(name)) task = FW.pdfText(file);
+  else return Promise.reject(new Error("Unsupported file type. Upload a PDF, DOCX or TXT file."));
+  return Promise.resolve(task).then(function(text){
+    text = String(text || "");
+    if(!text.trim()) throw new Error("No readable text was found. Try another file or paste the resume text.");
+    if(text.length > 50000) throw new Error("This resume contains too much text. Keep it under 50,000 characters or paste a shorter version.");
+    return text;
+  });
 };
 /* DOCX = a zip; pull word/document.xml with a minimal inflate via DecompressionStream */
 FW.docxText = function(file){
