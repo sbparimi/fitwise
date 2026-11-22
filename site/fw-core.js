@@ -54,9 +54,14 @@ FW.store = {
     }).catch(function(){ if(!cloudSyncWarningShown){ cloudSyncWarningShown = true; FW.toast("Resume saved in this browser, but cloud sync did not complete."); } });
     return rec;
   },
-  remove:function(id){ LS.set(RKEY, FW.store.all().filter(function(r){ return r.id!==id; }));
+  remove:function(id){
+    if(!LS.set(RKEY, FW.store.all().filter(function(r){ return r.id!==id; }))) return false;
     if(FW.store.activeId()===id) LS.del(AKEY);
-    if(FW.cloud.me) FW.api("/api/resumes?id="+encodeURIComponent(id), null, "DELETE").catch(function(){}); },
+    if(FW.cloud.me) FW.api("/api/resumes?id="+encodeURIComponent(id), null, "DELETE").then(function(j){
+      if(!j || !j.ok) FW.toast("Resume removed from this browser; cloud deletion could not be confirmed.");
+    }).catch(function(){ FW.toast("Resume removed from this browser; cloud deletion could not be confirmed."); });
+    return true;
+  },
   newId:function(){ return "res_" + Date.now().toString(36) + Math.random().toString(36).slice(2,7); },
   letters:function(){ var a=LS.get(CKEY,[]); return Array.isArray(a)?a:[]; },
   saveLetter:function(rec){ var all=FW.store.letters(), i=-1; all.forEach(function(r,n){ if(r.id===rec.id) i=n; });
@@ -91,19 +96,30 @@ FW.cloud = {
     if(!FW.cloud.me) return Promise.resolve([]);
     return FW.api("/api/resumes").then(function(j){
       var rows = (j && j.resumes) || [];
-      if(rows.length){
-        var local = FW.store.all(), byId = {};
-        local.forEach(function(r){ byId[r.id]=r; });
-        rows.forEach(function(r){
-          var ex = byId[r.id];
-          if(!ex || (r.updated_at||0) > (ex.updated_at||0))
-            byId[r.id] = {id:r.id,title:r.title,doc:r.doc,theme:r.theme,ats_score:r.ats_score,updated_at:r.updated_at,created_at:r.created_at};
-        });
-        var merged = Object.keys(byId).map(function(k){ return byId[k]; })
-          .sort(function(a,b){ return (b.updated_at||0)-(a.updated_at||0); });
-        LS.set(RKEY, merged.slice(0,40));
+      var local = FW.store.all(), byId = {}, cloudById = {}, needsPush = [];
+      local.forEach(function(r){ byId[r.id]=r; });
+      rows.forEach(function(r){
+        cloudById[r.id] = r;
+        var ex = byId[r.id];
+        if(!ex || (r.updated_at||0) > (ex.updated_at||0))
+          byId[r.id] = {id:r.id,title:r.title,doc:r.doc,theme:r.theme,ats_score:r.ats_score,updated_at:r.updated_at,created_at:r.created_at};
+      });
+      local.forEach(function(r){
+        var cloud = cloudById[r.id];
+        if(!cloud || (r.updated_at||0) > (cloud.updated_at||0)) needsPush.push(r);
+      });
+      var merged = Object.keys(byId).map(function(k){ return byId[k]; })
+        .sort(function(a,b){ return (b.updated_at||0)-(a.updated_at||0); });
+      if(!LS.set(RKEY, merged.slice(0,40))) {
+        if(!cloudSyncWarningShown){ cloudSyncWarningShown = true; FW.toast("Cloud data was loaded, but this browser could not save the merged resume list."); }
+        return rows;
       }
-      return rows;
+      return Promise.all(needsPush.map(function(r){ return FW.cloud.push(r); })).then(function(results){
+        if(results.some(function(ok){ return !ok; })){
+          if(!cloudSyncWarningShown){ cloudSyncWarningShown = true; FW.toast("Some resumes remain local because cloud sync did not complete."); }
+        } else cloudSyncWarningShown = false;
+        return rows;
+      });
     }).catch(function(){ return []; });
   }
 };
