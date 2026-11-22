@@ -37,10 +37,10 @@ The checker is a diagnostic. It is not an integration, certification or guarante
 - No uncaught browser exceptions, broken links or failed required API requests.
 
 ### Security and privacy review
-- Email OTP codes are never returned to clients and verification attempts are bounded.
+- Google ID tokens are verified server-side; email OTP codes are never returned to clients and verification attempts are bounded.
 - Uploaded files are size/type checked and parsed in the browser.
 - ATS share storage contains report metadata only, not source resume or job-description text.
-- Share reports expire after 30 days.
+- Share reports expire after 90 days, matching the selected retention policy.
 - Cloud-synced resumes are protected by account ownership checks.
 - Secrets are absent from source control and public frontend bundles.
 - Privacy notice accurately explains local storage, optional cloud sync, optional AI-provider processing and analytics.
@@ -68,7 +68,7 @@ Do not advertise deferred features as generally available from the MVP homepage.
 
 - **Legal controller details:** publish the operating legal entity/name and postal contact address in the privacy notice. These details must not be invented.
 - **Privacy governance:** verify the analytics opt-in and withdrawal behavior, document the legal basis and retention for operational logs, and confirm Cloudflare/AI processor terms and any EEA transfer safeguards before launch.
-- **Email sign-in:** optional email OTP remains unavailable until a verified Resend sender/domain and runtime key are configured. Core builder/checker use must continue without sign-in.
+- **Authentication:** Google sign-in requires verification of the configured OAuth client ID and authorized production origin. Email OTP remains unavailable until a Fitwise-approved Resend sender domain and runtime key are configured. Core builder/checker use must continue without sign-in.
 - **Production verification:** run the full browser matrix against https://fitwise.sites.tab.bot/. Repository CI is not a substitute for real browser testing.
 - **AI processing:** keep AI features out of the core launch promise. If enabled, verify provider configuration, data disclosures and factuality controls first.
 - **Commercial launch:** do not enable payments until the operator identity, consumer terms, pricing, billing and cancellation flows are complete.
