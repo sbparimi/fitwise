@@ -58,6 +58,14 @@ test("ATS report UI sends only the generated report to persistence", () => {
   assert.ok(!atsUi.includes("jd_text:"));
 });
 
+test("ATS share failures are not presented as valid links", () => {
+  assert.ok(atsUi.includes("function setShareLink(url, message)"));
+  assert.ok(atsUi.includes('setShareLink("", "Share link unavailable. Your scan results remain in this browser.")'));
+  assert.ok(!atsUi.includes('value = location.origin + "/ats-checker";'));
+  assert.ok(atsUi.includes("if(!state.text)"));
+  assert.ok(atsUi.includes("if(!FW.store.save(rec))"));
+});
+
 test("resume saves do not report success when browser storage fails", () => {
   assert.ok(core.includes("if(!LS.set(RKEY, all.slice(0,40))) return null;"));
   assert.ok(core.includes("Resume saved in this browser, but cloud sync did not complete."));
