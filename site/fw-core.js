@@ -291,8 +291,8 @@ FW.atsScan = function(opts){
 
   /* 3. Contact & Links (4) */
   var g3 = {name:"Contact Information", checks:[]};
-  var email = (text.match(/[\w.+-]+@[\w-]+\.[\w.]{2,}/)||[])[0];
-  var phone = (text.match(/(\+\d[\d\s().-]{7,}\d)|(\b0\d[\d\s().-]{7,}\d\b)/)||[])[0];
+  var email = (source.match(/[\w.+-]+@[\w-]+\.[\w.]{2,}/)||[])[0];
+  var phone = (source.match(/(\+\d[\d\s().-]{7,}\d)|(\b0\d[\d\s().-]{7,}\d\b)/)||[])[0];
   var li = /linkedin\.com\/(in|pub)\//i.test(text);
   var loc = /\b(amsterdam|rotterdam|utrecht|the hague|den haag|eindhoven|berlin|munich|münchen|hamburg|frankfurt|zurich|zürich|geneva|vienna|brussels|antwerp|paris|madrid|barcelona|lisbon|porto|warsaw|krakow|prague|stockholm|copenhagen|oslo|helsinki|dublin|london|manchester|milan|rome|luxembourg|remote|netherlands|germany|belgium|switzerland|austria|sweden|poland|portugal|spain|ireland|united kingdom|uk|usa|united states)\b/i.test(text)
     || /\b[A-Z][a-z]+,\s*[A-Z][a-zA-Z ]{2,}\b/.test(text);
@@ -534,16 +534,21 @@ FW.pdfText = function(file){
 
 /* ---------------- parse plain resume text into the structured doc ---------------- */
 FW.parseResume = function(text){
-  var lines = String(text||"").split(/\r?\n/).map(function(l){ return l.replace(/\s+$/,""); });
+  /* Strip visual divider rows commonly emitted by PDF/DOCX extraction, and
+     recover section headings that PDF extraction sometimes appends to a paragraph. */
+  var source = String(text||"")
+    .replace(/([.!?])\\s+(RELEVANT WORK EXPERIENCE|WORK EXPERIENCE|PROFESSIONAL EXPERIENCE|EMPLOYMENT HISTORY|EDUCATION|TECHNICAL SKILLS|CORE COMPETENCIES|SKILLS|CERTIFICATIONS|CERTIFICATES|PROJECTS|LANGUAGES)\\s*:?\\s*/g, "$1\\n$2\\n");
+  var lines = source.split(/\\r?\\n/).map(function(l){ return l.replace(/\\s+$/,""); })
+    .filter(function(l){ return !/^[\\s\\u2010-\\u2015\\-_=~.·•|│─━—–]{4,}$/.test(l.trim()); });
   var nonEmpty = lines.filter(function(l){ return l.trim(); });
   var doc = FW.emptyDoc();
   if(!nonEmpty.length) return doc;
   doc.name = nonEmpty[0].replace(/^[^A-Za-z]+/,"").slice(0,70);
   var email = (text.match(/[\w.+-]+@[\w-]+\.[\w.]{2,}/)||[])[0] || "";
   var phone = (text.match(/(\+\d[\d\s().-]{7,}\d)|(\b0\d[\d\s().-]{7,}\d\b)/)||[])[0] || "";
-  var li = (text.match(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/[A-Za-z0-9\-_%]+/i)||[])[0] || "";
+  var li = (source.match(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/[A-Za-z0-9\-_%]+/i)||[])[0] || "";
   doc.email = email; doc.phone = (phone||"").trim(); doc.linkedin = li;
-  var locm = text.match(/\b([A-Z][a-zA-Z]+(?:\s[A-Z][a-zA-Z]+)?),\s*(Netherlands|Germany|Belgium|Switzerland|Austria|Sweden|Poland|Portugal|Spain|Ireland|France|Italy|Luxembourg|Denmark|Norway|Finland|Czechia|United Kingdom|UK|USA|United States|Remote)\b/);
+  var locm = source.match(/\b([A-Z][a-zA-Z]+(?:\s[A-Z][a-zA-Z]+)?),\s*(Netherlands|Germany|Belgium|Switzerland|Austria|Sweden|Poland|Portugal|Spain|Ireland|France|Italy|Luxembourg|Denmark|Norway|Finland|Czechia|United Kingdom|UK|USA|United States|Remote)\b/);
   doc.location = locm ? locm[0] : "";
   if(nonEmpty[1] && nonEmpty[1].length < 70 && !/@|\d{4}/.test(nonEmpty[1])) doc.role = nonEmpty[1].trim();
 
