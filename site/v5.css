@@ -196,7 +196,7 @@ p{margin:0 0 1em}
   overflow:hidden;box-shadow:var(--sh-s);transition:transform .16s ease,box-shadow .2s ease;display:flex;flex-direction:column}
 .tpl-card:hover{transform:translateY(-4px);box-shadow:var(--sh-l)}
 .tpl-thumb{height:324px;overflow:hidden;background:#fff;border-bottom:1px solid var(--line-2);position:relative}
-.tpl-thumb .rz{transform:scale(.3);transform-origin:top left;width:333%;height:333%;pointer-events:none}
+.tpl-thumb .rz{width:210mm!important;max-width:none!important;transform:scale(.28);transform-origin:top left;pointer-events:none}
 .tpl-meta{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
 .tpl-meta b{font-size:.93rem}
 .tpl-meta .tag{flex:0 0 auto}
@@ -529,7 +529,7 @@ body.app{background:#F4F3FA}
 .rcard{background:#fff;border:1px solid var(--line);border-radius:var(--r-l);overflow:hidden;box-shadow:var(--sh-s);
   display:flex;flex-direction:column}
 .rcard .rc-prev{height:230px;overflow:hidden;border-bottom:1px solid var(--line-2);background:#F7F7FB;position:relative}
-.rcard .rc-prev .rz{transform:scale(.36);transform-origin:top left;width:278%;pointer-events:none;box-shadow:none}
+.rcard .rc-prev .rz{width:210mm!important;max-width:none!important;transform:scale(.36);transform-origin:top left;pointer-events:none;box-shadow:none}
 .rcard .rc-body{padding:15px;flex:1}
 .rcard .rc-body b{display:block;font-size:.98rem;margin-bottom:3px}
 .rcard .rc-body small{color:var(--muted);font-size:.82rem}
@@ -583,3 +583,10 @@ body.app{background:#F4F3FA}
 .wrap,.card,.plan,.ck,.item,.bub,.notice{min-width:0}
 .rz{max-width:100%}
 .tpl-thumb,.rc-prev{overflow:hidden}
+
+/* Regional CV corrections: preserve true A4 geometry in scaled previews. */
+.tpl-thumb .rz,.rc-prev .rz{max-width:none!important;flex:none}
+.rz[data-tpl="dach-cv"] .rz-job-h{display:grid;grid-template-columns:29mm minmax(0,1fr);align-items:start;gap:8pt}
+.rz[data-tpl="dach-cv"] .rz-job-h>div{grid-column:2;grid-row:1}
+.rz[data-tpl="dach-cv"] .rz-job-h>.rz-when{grid-column:1;grid-row:1;white-space:normal;order:initial}
+.rz[data-tpl="dach-cv"] .rz-when{font-weight:700;color:#15181F}

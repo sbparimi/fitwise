@@ -15,7 +15,7 @@ function init(){
   function draw(){
     var list = cur==="all" ? FW.TEMPLATES : FW.TEMPLATES.filter(function(t){ return t.cat.indexOf(cur)>=0; });
     gal.innerHTML = list.map(function(t){
-      var badge = t.cat.indexOf("ats")>=0 ? '<span class="tag">ATS-safe</span>' : '<span class="tag v">'+FW.esc(t.cat[0])+'</span>';
+      var badge = t.slug==="europass-eu" ? '<span class="tag v">Europass-inspired</span>' : (t.slug==="dach-cv" ? '<span class="tag v">DACH tabular</span>' : (t.cat.indexOf("ats")>=0 ? '<span class="tag">ATS-oriented</span>' : '<span class="tag v">'+FW.esc(t.cat[0])+'</span>'));
       return '<div class="tpl-card"><div class="tpl-thumb" data-tpl="'+t.slug+'"></div>' +
         '<div class="tpl-meta"><b>'+FW.esc(t.name)+'</b>'+badge+'</div>' +
         '<p class="small muted" style="margin:0 14px 10px">'+FW.esc(t.blurb)+'</p>' +

@@ -1,7 +1,17 @@
 /* Fitwise: first-party page-view beacon + Google sign-in on gated pages + sign-out. 1 Nov 2026. No third-party trackers. */
 (function(){
   var W = window, D = document;
+  function analyticsAllowed(){ return document.cookie.split("; ").some(function(x){ return x === "fw_consent=analytics"; }); }
+  function setAnalyticsChoice(choice){
+    document.cookie = "fw_consent=" + choice + "; Path=/; Max-Age=31536000; Secure; SameSite=Lax";
+    location.reload();
+  }
+  var consentBanner = D.getElementById("fwCookieNotice");
+  if(consentBanner && !document.cookie.split("; ").some(function(x){ return x.indexOf("fw_consent=") === 0; })) consentBanner.hidden = false;
+  var cookieSettings = D.getElementById("fwCookieSettings");
+  if(cookieSettings) cookieSettings.addEventListener("click", function(e){ e.preventDefault(); if(consentBanner) consentBanner.hidden = false; });
   function hit(t, o, m){
+    if(!analyticsAllowed()) return;
     try {
       var b = JSON.stringify({t: t, u: location.href, r: t === 'pageview' ? D.referrer : '', o: o || null, m: m || null});
       if (W.fetch) fetch('/api/hit', {method: 'POST', body: b, keepalive: true, credentials: 'same-origin', headers: {'content-type': 'application/json'}}).catch(function(){});
@@ -11,6 +21,8 @@
   W.fwHit = hit;
   if (!W.FW_NOPV) hit('pageview');
   D.addEventListener('click', function(e){
+    var choice = e.target.closest && e.target.closest("[data-cookie-choice]");
+    if(choice){ setAnalyticsChoice(choice.getAttribute("data-cookie-choice") === "accept" ? "analytics" : "essential"); return; }
     var a = e.target.closest && e.target.closest('[data-signout],[data-copylink],[data-ev]'); if (!a) return;
     if (a.hasAttribute('data-ev')) hit(a.getAttribute('data-ev'));
     if (a.hasAttribute('data-signout')) { e.preventDefault(); fetch('/api/auth/logout', {method: 'POST', credentials: 'same-origin'}).then(function(){ try { google.accounts.id.disableAutoSelect(); } catch (x) {} location.href = '/'; }); }

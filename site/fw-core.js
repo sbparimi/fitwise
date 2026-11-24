@@ -33,6 +33,7 @@ var LS = {
 };
 FW.LS = LS;
 var RKEY="fw_resumes_v1", AKEY="fw_active_resume", TKEY="fw_tracker_v1", CKEY="fw_letters_v1";
+var cloudSyncWarningShown = false;
 FW.store = {
   all:function(){ var a = LS.get(RKEY, []); return Array.isArray(a)?a:[]; },
   get:function(id){ return FW.store.all().filter(function(r){ return r.id===id; })[0] || null; },
@@ -45,14 +46,22 @@ FW.store = {
     rec.updated_at = Date.now();
     if(!rec.created_at) rec.created_at = rec.updated_at;
     if(i>=0) all[i]=rec; else all.unshift(rec);
-    LS.set(RKEY, all.slice(0,40));
+    if(!LS.set(RKEY, all.slice(0,40))) return null;
     FW.store.setActive(rec.id);
-    FW.cloud.push(rec);
+    if(FW.cloud.me) FW.cloud.push(rec).then(function(ok){
+      if(!ok && !cloudSyncWarningShown){ cloudSyncWarningShown = true; FW.toast("Resume saved in this browser, but cloud sync did not complete."); }
+      else if(ok) cloudSyncWarningShown = false;
+    }).catch(function(){ if(!cloudSyncWarningShown){ cloudSyncWarningShown = true; FW.toast("Resume saved in this browser, but cloud sync did not complete."); } });
     return rec;
   },
-  remove:function(id){ LS.set(RKEY, FW.store.all().filter(function(r){ return r.id!==id; }));
+  remove:function(id){
+    if(!LS.set(RKEY, FW.store.all().filter(function(r){ return r.id!==id; }))) return false;
     if(FW.store.activeId()===id) LS.del(AKEY);
-    if(FW.cloud.me) FW.api("/api/resumes?id="+encodeURIComponent(id), null, "DELETE").catch(function(){}); },
+    if(FW.cloud.me) FW.api("/api/resumes?id="+encodeURIComponent(id), null, "DELETE").then(function(j){
+      if(!j || !j.ok) FW.toast("Resume removed from this browser; cloud deletion could not be confirmed.");
+    }).catch(function(){ FW.toast("Resume removed from this browser; cloud deletion could not be confirmed."); });
+    return true;
+  },
   newId:function(){ return "res_" + Date.now().toString(36) + Math.random().toString(36).slice(2,7); },
   letters:function(){ var a=LS.get(CKEY,[]); return Array.isArray(a)?a:[]; },
   saveLetter:function(rec){ var all=FW.store.letters(), i=-1; all.forEach(function(r,n){ if(r.id===rec.id) i=n; });
@@ -87,19 +96,30 @@ FW.cloud = {
     if(!FW.cloud.me) return Promise.resolve([]);
     return FW.api("/api/resumes").then(function(j){
       var rows = (j && j.resumes) || [];
-      if(rows.length){
-        var local = FW.store.all(), byId = {};
-        local.forEach(function(r){ byId[r.id]=r; });
-        rows.forEach(function(r){
-          var ex = byId[r.id];
-          if(!ex || (r.updated_at||0) > (ex.updated_at||0))
-            byId[r.id] = {id:r.id,title:r.title,doc:r.doc,theme:r.theme,ats_score:r.ats_score,updated_at:r.updated_at,created_at:r.created_at};
-        });
-        var merged = Object.keys(byId).map(function(k){ return byId[k]; })
-          .sort(function(a,b){ return (b.updated_at||0)-(a.updated_at||0); });
-        LS.set(RKEY, merged.slice(0,40));
+      var local = FW.store.all(), byId = {}, cloudById = {}, needsPush = [];
+      local.forEach(function(r){ byId[r.id]=r; });
+      rows.forEach(function(r){
+        cloudById[r.id] = r;
+        var ex = byId[r.id];
+        if(!ex || (r.updated_at||0) > (ex.updated_at||0))
+          byId[r.id] = {id:r.id,title:r.title,doc:r.doc,theme:r.theme,ats_score:r.ats_score,updated_at:r.updated_at,created_at:r.created_at};
+      });
+      local.forEach(function(r){
+        var cloud = cloudById[r.id];
+        if(!cloud || (r.updated_at||0) > (cloud.updated_at||0)) needsPush.push(r);
+      });
+      var merged = Object.keys(byId).map(function(k){ return byId[k]; })
+        .sort(function(a,b){ return (b.updated_at||0)-(a.updated_at||0); });
+      if(!LS.set(RKEY, merged.slice(0,40))) {
+        if(!cloudSyncWarningShown){ cloudSyncWarningShown = true; FW.toast("Cloud data was loaded, but this browser could not save the merged resume list."); }
+        return rows;
       }
-      return rows;
+      return Promise.all(needsPush.map(function(r){ return FW.cloud.push(r); })).then(function(results){
+        if(results.some(function(ok){ return !ok; })){
+          if(!cloudSyncWarningShown){ cloudSyncWarningShown = true; FW.toast("Some resumes remain local because cloud sync did not complete."); }
+        } else cloudSyncWarningShown = false;
+        return rows;
+      });
     }).catch(function(){ return []; });
   }
 };
@@ -236,9 +256,9 @@ FW.atsScan = function(opts){
     wc>120 ? "Your resume text parses cleanly ("+wc+" words extracted), so ATS software can read every line."
            : "Only "+wc+" words could be read. An ATS may see the same gap — export as a text-based PDF or DOCX, never a scan or image."));
   var ext = (filename.match(/\.([a-z0-9]+)$/i)||[])[1];
-  g1.checks.push(C("file_format","File format", (!ext||/^(pdf|docx|doc|txt)$/i.test(ext))?"pass":"fail",
+  g1.checks.push(C("file_format","File format", (!ext||/^(pdf|docx|txt)$/i.test(ext))?"pass":"fail",
     !ext ? "Pasted text was analysed directly. For applications, upload a PDF or DOCX — the two formats every major ATS handles best."
-         : (/^(pdf|docx|doc|txt)$/i.test(ext) ? "Your resume is a "+ext.toUpperCase()+" file, one of the formats ATS software handles best."
+         : (/^(pdf|docx|txt)$/i.test(ext) ? "Your resume is a "+ext.toUpperCase()+" file, one of the formats ATS software handles best."
             : "." + ext + " is not reliably parsed. Export to PDF or DOCX instead.")));
   g1.checks.push(C("word_count","Length in words", (wc>=350&&wc<=1100)?"pass":(wc>=220&&wc<=1500?"warn":"fail"),
     (wc>=350&&wc<=1100) ? wc+" words is in the range recruiters and parsers expect (roughly 350–1,100)."
@@ -271,8 +291,8 @@ FW.atsScan = function(opts){
 
   /* 3. Contact & Links (4) */
   var g3 = {name:"Contact Information", checks:[]};
-  var email = (text.match(/[\w.+-]+@[\w-]+\.[\w.]{2,}/)||[])[0];
-  var phone = (text.match(/(\+\d[\d\s().-]{7,}\d)|(\b0\d[\d\s().-]{7,}\d\b)/)||[])[0];
+  var email = (source.match(/[\w.+-]+@[\w-]+\.[\w.]{2,}/)||[])[0];
+  var phone = (source.match(/(\+\d[\d\s().-]{7,}\d)|(\b0\d[\d\s().-]{7,}\d\b)/)||[])[0];
   var li = /linkedin\.com\/(in|pub)\//i.test(text);
   var loc = /\b(amsterdam|rotterdam|utrecht|the hague|den haag|eindhoven|berlin|munich|münchen|hamburg|frankfurt|zurich|zürich|geneva|vienna|brussels|antwerp|paris|madrid|barcelona|lisbon|porto|warsaw|krakow|prague|stockholm|copenhagen|oslo|helsinki|dublin|london|manchester|milan|rome|luxembourg|remote|netherlands|germany|belgium|switzerland|austria|sweden|poland|portugal|spain|ireland|united kingdom|uk|usa|united states)\b/i.test(text)
     || /\b[A-Z][a-z]+,\s*[A-Z][a-zA-Z ]{2,}\b/.test(text);
@@ -406,11 +426,20 @@ FW.ring = function(el, value, label){
 
 /* ---------------- file text extraction (PDF / DOCX / TXT) ---------------- */
 FW.readFileText = function(file){
+  if(!file || typeof file.size !== "number") return Promise.reject(new Error("Choose a PDF, DOCX or TXT file."));
+  if(file.size > 10 * 1024 * 1024) return Promise.reject(new Error("Files must be 10 MB or smaller."));
   var name = (file.name||"").toLowerCase();
-  if(/\.(txt|md|csv)$/.test(name)) return file.text();
-  if(/\.docx$/.test(name)) return FW.docxText(file);
-  if(/\.pdf$/.test(name)) return FW.pdfText(file);
-  return file.text();
+  var task;
+  if(/\.txt$/.test(name)) task = file.text();
+  else if(/\.docx$/.test(name)) task = FW.docxText(file);
+  else if(/\.pdf$/.test(name)) task = FW.pdfText(file);
+  else return Promise.reject(new Error("Unsupported file type. Upload a PDF, DOCX or TXT file."));
+  return Promise.resolve(task).then(function(text){
+    text = String(text || "");
+    if(!text.trim()) throw new Error("No readable text was found. Try another file or paste the resume text.");
+    if(text.length > 50000) throw new Error("This resume contains too much text. Keep it under 50,000 characters or paste a shorter version.");
+    return text;
+  });
 };
 /* DOCX = a zip; pull word/document.xml with a minimal inflate via DecompressionStream */
 FW.docxText = function(file){
@@ -447,140 +476,154 @@ FW.xmlToText = function(xml){
 };
 /* PDF text: pull uncompressed + FlateDecode content streams and read the text-showing operators */
 FW.pdfText = function(file){
+  function loadPdfJs(){
+    if(window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+    if(FW._pdfJsLoading) return FW._pdfJsLoading;
+    FW._pdfJsLoading = new Promise(function(resolve,reject){
+      var script=document.createElement("script");
+      script.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+      script.onload=function(){
+        if(!window.pdfjsLib){reject(new Error("PDF reader did not initialise."));return;}
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+        resolve(window.pdfjsLib);
+      };
+      script.onerror=function(){reject(new Error("Could not load the PDF reader. Try a DOCX version of your resume."));};
+      document.head.appendChild(script);
+    });
+    return FW._pdfJsLoading;
+  }
   return file.arrayBuffer().then(function(buf){
-    var u8 = new Uint8Array(buf);
-    var marker = [0x73,0x74,0x72,0x65,0x61,0x6d]; /* "stream" */
-    var chunks = [], i = 0;
-    function find(from){
-      outer: for(var p=from;p<u8.length-6;p++){
-        for(var k=0;k<6;k++) if(u8[p+k]!==marker[k]) continue outer;
-        return p;
-      }
-      return -1;
-    }
-    var jobs = [];
-    while((i = find(i)) !== -1){
-      var s = i+6;
-      if(u8[s]===13) s++;
-      if(u8[s]===10) s++;
-      /* endstream */
-      var e = s;
-      outer2: for(var p=s;p<u8.length-9;p++){
-        if(u8[p]===0x65&&u8[p+1]===0x6e&&u8[p+2]===0x64&&u8[p+3]===0x73&&u8[p+4]===0x74&&u8[p+5]===0x72&&u8[p+6]===0x65&&u8[p+7]===0x61&&u8[p+8]===0x6d){ e=p; break outer2; }
-      }
-      if(e<=s){ i = s; continue; }
-      jobs.push(u8.subarray(s,e));
-      i = e+9;
-      if(jobs.length>400) break;
-    }
-    var decodeChunk = function(data){
-      var looksFlate = data.length>2 && (data[0]&0x0f)===8;
-      if(!looksFlate || typeof DecompressionStream!=="function")
-        return Promise.resolve(new TextDecoder("latin1").decode(data));
-      return new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream("deflate"))).text()
-        .catch(function(){ return new TextDecoder("latin1").decode(data); });
-    };
-    return Promise.all(jobs.map(decodeChunk)).then(function(parts){
-      var out = [];
-      parts.join("\n").replace(/\[((?:[^\]\\]|\\.)*)\]\s*TJ|\(((?:[^)\\]|\\.)*)\)\s*Tj|T\*|\bTd\b|\bTD\b|\bET\b/g, function(m, arr, str){
-        if(arr!=null){
-          var s = "";
-          arr.replace(/\(((?:[^)\\]|\\.)*)\)|(-?\d+(?:\.\d+)?)/g, function(mm, t, num){
-            if(t!=null) s += t.replace(/\\([()\\])/g,"$1").replace(/\\n/g,"\n");
-            else if(Math.abs(parseFloat(num))>180) s += " ";
-            return "";
-          });
-          out.push(s);
-        } else if(str!=null){ out.push(str.replace(/\\([()\\])/g,"$1")); }
-        else { out.push("\n"); }
-        return "";
+    return loadPdfJs().then(function(pdfjs){
+      return pdfjs.getDocument({data:new Uint8Array(buf)}).promise.then(function(pdf){
+        var pages=[];
+        var chain=Promise.resolve();
+        for(var p=1;p<=pdf.numPages;p++){
+          (function(pageNo){
+            chain=chain.then(function(){
+              return pdf.getPage(pageNo).then(function(page){
+                return page.getTextContent().then(function(content){
+                  var rows=[];
+                  content.items.forEach(function(item){
+                    var value=String(item.str||"").trim();
+                    if(!value) return;
+                    var tr=item.transform||[];
+                    var x=Number(tr[4]||0), y=Number(tr[5]||0);
+                    var row=rows.find(function(r){return Math.abs(r.y-y)<2.2;});
+                    if(!row){row={y:y,items:[]};rows.push(row);}
+                    row.items.push({x:x,text:value});
+                  });
+                  rows.sort(function(a,b){return b.y-a.y;});
+                  pages.push(rows.map(function(row){
+                    row.items.sort(function(a,b){return a.x-b.x;});
+                    var line="";
+                    row.items.forEach(function(it,index){
+                      if(index && it.x-row.items[index-1].x>20) line+="  ";
+                      else if(index && !/[-–—|/]$/.test(line) && !/^[-–—|/.,:;]/.test(it.text)) line+=" ";
+                      line+=it.text;
+                    });
+                    return line.replace(/\s+/g," ").trim();
+                  }).filter(Boolean).join("\n"));
+                });
+              });
+            });
+          })(p);
+        }
+        return chain.then(function(){
+          var text=pages.join("\n\n");
+          if(text.replace(/\s/g,"").length<60)
+            throw new Error("This PDF has no extractable text. Upload a text-based PDF or DOCX.");
+          return text;
+        });
       });
-      var text = out.join("").replace(/\u0000/g,"").replace(/[ \t]{2,}/g," ").replace(/\n{3,}/g,"\n\n").trim();
-      if(text.replace(/\s/g,"").length < 60)
-        throw new Error("This PDF holds no extractable text (it looks scanned). An ATS sees the same nothing — paste the text instead.");
-      return text;
     });
   });
 };
 
 /* ---------------- parse plain resume text into the structured doc ---------------- */
 FW.parseResume = function(text){
-  var lines = String(text||"").split(/\r?\n/).map(function(l){ return l.replace(/\s+$/,""); });
-  var nonEmpty = lines.filter(function(l){ return l.trim(); });
-  var doc = FW.emptyDoc();
-  if(!nonEmpty.length) return doc;
-  doc.name = nonEmpty[0].replace(/^[^A-Za-z]+/,"").slice(0,70);
-  var email = (text.match(/[\w.+-]+@[\w-]+\.[\w.]{2,}/)||[])[0] || "";
-  var phone = (text.match(/(\+\d[\d\s().-]{7,}\d)|(\b0\d[\d\s().-]{7,}\d\b)/)||[])[0] || "";
-  var li = (text.match(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/[A-Za-z0-9\-_%]+/i)||[])[0] || "";
-  doc.email = email; doc.phone = (phone||"").trim(); doc.linkedin = li;
-  var locm = text.match(/\b([A-Z][a-zA-Z]+(?:\s[A-Z][a-zA-Z]+)?),\s*(Netherlands|Germany|Belgium|Switzerland|Austria|Sweden|Poland|Portugal|Spain|Ireland|France|Italy|Luxembourg|Denmark|Norway|Finland|Czechia|United Kingdom|UK|USA|United States|Remote)\b/);
-  doc.location = locm ? locm[0] : "";
-  if(nonEmpty[1] && nonEmpty[1].length < 70 && !/@|\d{4}/.test(nonEmpty[1])) doc.role = nonEmpty[1].trim();
-
-  /* split into sections by heading-looking lines */
-  var HEAD = /^(work experience|professional experience|experience|employment(?: history)?|career history|education|qualifications|skills|technical skills|core competencies|competencies|tech stack|summary|profile|professional summary|objective|about me|projects|certifications|certificates|languages|awards|publications|volunteering|interests)\b[:\s]*$/i;
-  var cur = "head", buckets = {head:[]};
-  lines.forEach(function(l){
-    var t = l.trim();
-    if(HEAD.test(t)){ cur = t.toLowerCase().replace(/[:\s]+$/,""); buckets[cur] = buckets[cur]||[]; return; }
-    (buckets[cur] = buckets[cur]||[]).push(l);
+  var source=String(text||"")
+    .replace(/([.!?])\s+(RELEVANT WORK EXPERIENCE|WORK EXPERIENCE|PROFESSIONAL EXPERIENCE|EMPLOYMENT HISTORY|EDUCATION|TECHNICAL SKILLS|CORE CAPABILITIES|CORE COMPETENCIES|SKILLS|CERTIFICATIONS|CERTIFICATES|PROJECTS|LANGUAGES)\s*:?\s*/gi,"$1\n$2\n");
+  var lines=source.split(/\r?\n/).map(function(s){return s.replace(/\s+/g," ").trim();})
+    .filter(function(s){return s && !/^[\u2010-\u2015\-_=~.·•|│─━—–\s]{4,}$/.test(s);});
+  var doc=FW.emptyDoc();
+  if(!lines.length) return doc;
+  var email=(source.match(/[\w.+-]+@[\w-]+\.[\w.]{2,}/)||[])[0]||"";
+  var phone=(source.match(/\+\d[\d\s().-]{7,}\d/)||[])[0]||"";
+  var li=(source.match(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/[A-Za-z0-9\-_%]+/i)||[])[0]||"";
+  var nameIndex=lines.findIndex(function(s){return /^[A-Z][A-Z .'-]{3,}$/.test(s)&&!/@|LINKEDIN|SUMMARY|EXPERIENCE|EDUCATION|SKILLS/.test(s);});
+  doc.name=(nameIndex>=0?lines[nameIndex]:lines[0]).slice(0,70);
+  if(nameIndex>=0 && lines[nameIndex+1] && lines[nameIndex+1].length<150 && !/@|linkedin|\\+\\d/.test(lines[nameIndex+1])) doc.role=lines[nameIndex+1].slice(0,120);
+  doc.email=email; doc.phone=phone.trim(); doc.linkedin=li;
+  var loc=source.match(/\b(Amsterdam|Amstelveen|Utrecht|Rotterdam|The Hague|London|Berlin|Munich|Zurich|Vienna),?\s*(Netherlands|Germany|Belgium|Switzerland|Austria|United Kingdom|UK)?\b/i);
+  doc.location=loc?loc[0]:"";
+  var section="header", buckets={header:[]};
+  var heads=[
+    ["summary",/^(professional summary|summary|profile|career profile|objective|about me)$/i],
+    ["capabilities",/^(core capabilities|core competencies|key skills|competencies)$/i],
+    ["experience",/^(professional experience|work experience|relevant work experience|experience|employment history|career history)$/i],
+    ["skills",/^(technical skills|skills|technology skills|tech stack)$/i],
+    ["education",/^(education|academic qualifications|qualifications)$/i],
+    ["certifications",/^(certifications|certificates|certifications & training|certifications and training|training)$/i],
+    ["projects",/^(projects|selected projects)$/i],
+    ["languages",/^(languages)$/i]
+  ];
+  lines.forEach(function(line){
+    var clean=line.replace(/[:：]$/,"").trim();
+    var match=heads.find(function(h){return h[1].test(clean);});
+    if(match){section=match[0];buckets[section]=buckets[section]||[];return;}
+    (buckets[section]=buckets[section]||[]).push(line);
   });
-  var pick = function(res){ for(var k in buckets){ if(res.test(k)) return buckets[k]; } return null; };
-  var sum = pick(/summary|profile|objective|about me/);
-  if(sum) doc.summary = sum.join(" ").replace(/\s+/g," ").trim().slice(0,900);
-  var sk = pick(/skills|competenc|tech stack/);
-  if(sk){
-    var items = sk.join(", ").split(/[,;•|\u2022\n]/).map(function(s){ return s.replace(/^[\s\-•*]+/,"").trim(); })
-      .filter(function(s){ return s.length>1 && s.length<40; });
-    doc.skills = items.slice(0,28);
-  }
-  var exp = pick(/experience|employment|career/);
-  if(exp){
-    var cu = null;
-    exp.forEach(function(l){
-      var t = l.trim(); if(!t) return;
-      var isBullet = /^[•\-\*\u2022\u25cf\u2023o]\s+/.test(t);
-      var dates = t.match(/((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s*\d{4}|\d{2}\/\d{4}|\d{4})\s*[–\-—to]+\s*((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s*\d{4}|\d{2}\/\d{4}|\d{4}|Present|Current|Now)/i);
-      if(!isBullet && (dates || (t.length<90 && /[A-Za-z]/.test(t) && !/[.!?]$/.test(t) && cu===null))){
-        cu = {title:"", company:"", when: dates?dates[0]:"", location:"", bullets:[]};
-        var rest = t.replace(dates?dates[0]:"", "").replace(/[|•\u2022]+/g,"@@").replace(/\s{2,}/g,"@@").trim();
-        var parts = rest.split("@@").map(function(s){ return s.replace(/^[\s,\-–]+|[\s,\-–]+$/g,""); }).filter(Boolean);
-        cu.title = parts[0]||""; cu.company = parts[1]||""; cu.location = parts[2]||"";
-        doc.experience.push(cu);
-      } else if(cu){
-        if(isBullet) cu.bullets.push(t.replace(/^[•\-\*\u2022\u25cf\u2023o]\s+/,"").trim());
-        else if(cu.bullets.length) cu.bullets[cu.bullets.length-1] += " " + t;
-        else if(!cu.company) cu.company = t.slice(0,80);
-        else cu.bullets.push(t);
+  var summary=(buckets.summary||[]).join(" ").replace(/\s+/g," ").trim();
+  doc.summary=summary.slice(0,1400);
+  var cap=(buckets.capabilities||[]).concat(buckets.skills||[]);
+  doc.skills=cap.join("\n").split(/[\n,;|•\u2022]/).map(function(s){return s.replace(/^[\s\-*]+/,"").trim();})
+    .filter(function(s){return s.length>1&&s.length<70;}).slice(0,40);
+  var exp=buckets.experience||[], current=null, pendingRole="";
+  var dateRe=/((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{4}|\d{2}\/\d{4}|\b(?:19|20)\d{2}\b)\s*[–—-]\s*((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{4}|\d{2}\/\d{4}|\b(?:19|20)\d{2}\b|Present|Current|Now)/i;
+  var isBullet=function(s){return /^[•\-\*\u2022\u25cf\u2023o]\s+/.test(s);};
+  exp.forEach(function(line){
+    var t=line.trim(); if(!t) return;
+    if(isBullet(t)){
+      if(current) current.bullets.push(t.replace(/^[•\-\*\u2022\u25cf\u2023o]\s+/,"").trim());
+      return;
+    }
+    var dm=t.match(dateRe);
+    if(dm){
+      if(!current){
+        current={title:pendingRole||"",company:"",when:dm[0],location:"",bullets:[]};
+        doc.experience.push(current);
+      }else current.when=dm[0];
+      var trailing=t.replace(dm[0],"").replace(/^[|,\s]+/,"").trim();
+      if(trailing&&current.bullets.length) current.bullets[current.bullets.length-1]+=" "+trailing;
+      pendingRole="";
+      return;
+    }
+    if(/\|/.test(t)&&t.length<150){
+      var parts=t.split("|").map(function(s){return s.trim();}).filter(Boolean);
+      current={title:"",company:parts[0]||"",when:"",location:parts.slice(1).join(", "),bullets:[]};
+      doc.experience.push(current); pendingRole="";
+      return;
+    }
+    if(current && !current.title && t.length<130 && !/[.!?]$/.test(t)){
+      current.title=t; return;
+    }
+    if(!current || current.when || current.bullets.length===0 && current.title){
+      if(!current || current.when || current.bullets.length){
+        if(t.length<140 && !/[.!?]$/.test(t)){pendingRole=t;current=null;return;}
       }
-    });
-    doc.experience = doc.experience.filter(function(e){ return e.title || e.company || e.bullets.length; }).slice(0,8);
-  }
-  var ed = pick(/education|qualifications/);
-  if(ed){
-    var buf = ed.filter(function(l){ return l.trim(); });
-    for(var i2=0;i2<buf.length;i2++){
-      var t2 = buf[i2].trim(); if(t2.length<3) continue;
-      var dm = t2.match(/\b(19|20)\d{2}\b(\s*[–\-]\s*((19|20)\d{2}|Present))?/i);
-      doc.education.push({degree:t2.replace(dm?dm[0]:"","").replace(/[,|•\u2022]+/g," ").replace(/\s{2,}/g," ").trim().slice(0,110),
-        school: (buf[i2+1]&&buf[i2+1].trim().length<80&&!/\d{4}/.test(buf[i2+1])) ? (i2++, buf[i2].trim()) : "",
-        when: dm?dm[0]:""});
-      if(doc.education.length>=5) break;
     }
-  }
-  var cert = pick(/certificat/);
-  if(cert) doc.certifications = cert.join("\n").split(/\n|[•\u2022]/).map(function(s){ return s.replace(/^[\s\-*]+/,"").trim(); }).filter(function(s){ return s.length>2; }).slice(0,10);
-  var lang = pick(/languages/);
-  if(lang) doc.languages = lang.join(", ").split(/[,;•\u2022\n]/).map(function(s){ return s.trim(); }).filter(function(s){ return s.length>1 && s.length<40; }).slice(0,8);
-  var proj = pick(/projects/);
-  if(proj){
-    var pl = proj.filter(function(l){ return l.trim(); });
-    for(var j=0;j<pl.length && doc.projects.length<5;j++){
-      var line = pl[j].trim().replace(/^[\s\-•*]+/,"");
-      if(line.length>2) doc.projects.push({name: line.slice(0,70), detail: (pl[j+1]&&pl[j+1].trim().length>40)?(j++, pl[j].trim().slice(0,220)):""});
-    }
-  }
+    if(current){
+      if(current.bullets.length) current.bullets[current.bullets.length-1]+=" "+t;
+      else current.bullets.push(t);
+    }else if(t.length<140&&!/[.!?]$/.test(t)) pendingRole=t;
+  });
+  doc.experience=doc.experience.filter(function(e){return e.company||e.title||e.bullets.length;}).slice(0,12);
+  (buckets.education||[]).forEach(function(t){
+    if(t.length>3) doc.education.push({degree:t.slice(0,140),school:"",when:""});
+  });
+  doc.education=doc.education.slice(0,8);
+  doc.certifications=(buckets.certifications||[]).join("\n").split(/[\n|•\u2022]/).map(function(s){return s.trim();}).filter(function(s){return s.length>2;}).slice(0,20);
+  doc.languages=(buckets.languages||[]).join(", ").split(/[,;|]/).map(function(s){return s.trim();}).filter(Boolean).slice(0,10);
   return doc;
 };
 

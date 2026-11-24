@@ -17,6 +17,21 @@ function cleanLLMOutput(t) {
 const FREE_LLM_BY_ID = Object.fromEntries(FREE_LLM_CATALOG.map(p => [p.id, p]));
 
 let _b1Ready = false;
+let _atsScanCleanupAt = 0;
+async function cleanupAtsScans(db) {
+  const now = Date.now();
+  if (now - _atsScanCleanupAt < 3600000) return;
+  await db.prepare("UPDATE ats_scans SET filename = CASE WHEN lower(COALESCE(filename, '')) LIKE '%.pdf' THEN 'Resume.pdf' WHEN lower(COALESCE(filename, '')) LIKE '%.docx' THEN 'Resume.docx' WHEN lower(COALESCE(filename, '')) LIKE '%.txt' THEN 'Resume.txt' ELSE 'Resume' END, report_json = json_set(CASE WHEN json_valid(report_json) THEN report_json ELSE '{}' END, '$.meta.filename', CASE WHEN lower(COALESCE(filename, '')) LIKE '%.pdf' THEN 'Resume.pdf' WHEN lower(COALESCE(filename, '')) LIKE '%.docx' THEN 'Resume.docx' WHEN lower(COALESCE(filename, '')) LIKE '%.txt' THEN 'Resume.txt' ELSE 'Resume' END), resume_text = '', jd_text = '' WHERE resume_text <> '' OR jd_text <> '' OR COALESCE(filename, '') NOT IN ('Resume.pdf','Resume.docx','Resume.txt','Resume') OR CASE WHEN json_valid(report_json) THEN COALESCE(json_extract(report_json, '$.meta.filename'), '') ELSE '' END NOT IN ('Resume.pdf','Resume.docx','Resume.txt','Resume')").run();
+  await db.prepare("DELETE FROM ats_scans WHERE created_at < ?").bind(now - 90 * 86400000).run();
+  _atsScanCleanupAt = now;
+}
+let _resumeCleanupAt = 0;
+async function cleanupResumes(db) {
+  const now = Date.now();
+  if (now - _resumeCleanupAt < 3600000) return;
+  await db.prepare("DELETE FROM resumes WHERE COALESCE(updated_at, created_at, 0) < ?").bind(now - 90 * 86400000).run();
+  _resumeCleanupAt = now;
+}
 async function build1Db(env) {
   const db = env.DB;
   if (!_b1Ready) {
@@ -335,43 +350,54 @@ async function routeBuild1(p, req, env, url) {
     return json({ signed_in: true, email: s.key ? "admin" : s.email, name: s.name || "", isAdmin: !!s.isAdmin });
   }
 
-  // 2. Email OTP Passwordless Sign-In (works in LinkedIn in-app browser & everywhere!)
+  // 2. Email OTP Passwordless Sign-In. Never return verification codes to the browser.
   if (p === "/api/auth/email/request" && req.method === "POST") {
     const b = await req.json().catch(() => ({}));
     const email = String(b.email || "").trim().toLowerCase();
     const name = String(b.name || "").trim().slice(0, 80);
     if (!EMAIL_RE.test(email)) return json({ error: "Enter a valid email address." }, 400);
+
     const ip = req.headers.get("cf-connecting-ip") || "0", day = amsDay();
-    const kI = "q:otp:" + (await sha(ip)).slice(0, 20) + ":" + day;
-    if ((await kvNum(env, kI)) >= 20) return json({ error: "Too many sign-in codes requested today. Try again tomorrow." }, 429);
-    await bump(env, kI, 172800);
-    const code = String(100000 + (crypto.getRandomValues(new Uint32Array(1))[0] % 900000));
     const eh = await sha(email);
-    await store(env).put("otp:" + eh, JSON.stringify({ code, email, name, at: Date.now() }), { expirationTtl: 600 });
-    // Check if Resend email key is configured in app_config
-    let emailed = false;
+    const kI = "q:otp:" + (await sha(ip)).slice(0, 20) + ":" + day;
+    if ((await kvNum(env, kI)) >= 20) {
+      return json({ error: "Too many sign-in code requests from this network. Try again later.", code: "otp_rate_limited" }, 429);
+    }
+    await bump(env, kI, 86400);
+
+    const mailCfg = await getAppCfg(env, "mail_provider");
+    if (!mailCfg || !mailCfg.resend_key) {
+      return json({ error: "Email sign-in is temporarily unavailable. You can still use the resume builder and ATS checker without an account.", code: "email_delivery_unavailable" }, 503);
+    }
+    const kE = "q:otp:email:" + eh + ":" + day;
+    if ((await kvNum(env, kE)) >= 5) {
+      return json({ error: "Too many sign-in code requests for this email. Try again later.", code: "otp_rate_limited" }, 429);
+    }
+    await bump(env, kE, 86400);
+
+    const code = String(100000 + (crypto.getRandomValues(new Uint32Array(1))[0] % 900000));
+    const expiresAt = Date.now() + 600000;
+    await store(env).put("otp:" + eh, JSON.stringify({ code, email, name, at: Date.now(), expires_at: expiresAt, attempts: 0 }), { expirationTtl: 600 });
+
+    let sent = false;
     try {
-      const mailCfg = await getAppCfg(env, "mail_provider");
-      if (mailCfg && mailCfg.resend_key) {
-        const mr = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: { authorization: "Bearer " + mailCfg.resend_key, "content-type": "application/json" },
-          body: JSON.stringify({
-            from: mailCfg.from || "Fitwise <noreply@fitwise.sites.tab.bot>",
-            to: [email],
-            subject: `Your Fitwise sign-in code: ${code}`,
-            text: `Your 6-digit Fitwise sign-in code is ${code}. It expires in 10 minutes.`
-          })
-        });
-        emailed = mr.ok;
-      }
+      const mr = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { authorization: "Bearer " + mailCfg.resend_key, "content-type": "application/json" },
+        body: JSON.stringify({
+          from: mailCfg.from || "Fitwise <noreply@fitwise.sites.tab.bot>",
+          to: [email],
+          subject: `Your Fitwise sign-in code: ${code}`,
+          text: `Your 6-digit Fitwise sign-in code is ${code}. It expires in 10 minutes.`
+        })
+      });
+      sent = mr.ok;
     } catch {}
-    return json({
-      ok: true,
-      emailed,
-      instant_code: emailed ? undefined : code,
-      message: emailed ? `We sent a 6-digit code to ${email}.` : `Instant verification code generated for ${email} (email delivery not configured yet).`
-    });
+    if (!sent) {
+      await store(env).delete("otp:" + eh);
+      return json({ error: "We could not deliver your sign-in code. Try again later or continue without an account.", code: "email_delivery_failed" }, 502);
+    }
+    return json({ ok: true, emailed: true, message: `We sent a 6-digit code to ${email}. It expires in 10 minutes.` });
   }
 
   if (p === "/api/auth/email/verify" && req.method === "POST") {
@@ -382,8 +408,26 @@ async function routeBuild1(p, req, env, url) {
     const eh = await sha(email);
     const raw = await store(env).get("otp:" + eh);
     if (!raw) return json({ error: "Code expired or not found. Request a new code." }, 401);
-    const rec = JSON.parse(raw);
-    if (rec.code !== code) return json({ error: "Incorrect code. Please double-check and try again." }, 401);
+    let rec;
+    try { rec = JSON.parse(raw); } catch { await store(env).delete("otp:" + eh); return json({ error: "Code expired or not found. Request a new code." }, 401); }
+    const expiresAt = Number(rec.expires_at) || (Number(rec.at) + 600000);
+    if (!expiresAt || Date.now() > expiresAt) {
+      await store(env).delete("otp:" + eh);
+      return json({ error: "Code expired. Request a new code." }, 401);
+    }
+    if (Number(rec.attempts || 0) >= 5) {
+      await store(env).delete("otp:" + eh);
+      return json({ error: "Too many incorrect attempts. Request a new code." }, 429);
+    }
+    if (rec.code !== code) {
+      rec.attempts = Number(rec.attempts || 0) + 1;
+      if (rec.attempts >= 5) {
+        await store(env).delete("otp:" + eh);
+        return json({ error: "Too many incorrect attempts. Request a new code." }, 429);
+      }
+      await store(env).put("otp:" + eh, JSON.stringify(rec), { expirationTtl: Math.max(1, Math.ceil((expiresAt - Date.now()) / 1000)) });
+      return json({ error: "Incorrect code. Please double-check and try again." }, 401);
+    }
     await store(env).delete("otp:" + eh);
     const sub = "email:" + eh.slice(0, 28);
     const db = await usersDb(env);
@@ -403,21 +447,72 @@ async function routeBuild1(p, req, env, url) {
   // 3. Ungated ATS Scan persistence (?scan_id=...)
   if (p === "/api/ats/scan") {
     const db = await build1Db(env);
+    await cleanupAtsScans(db);
     if (req.method === "GET") {
       const id = String(url.searchParams.get("id") || "").trim();
-      if (!id) return json({ error: "missing id" }, 400);
-      const row = await db.prepare("SELECT id, filename, score, report_json, resume_text, jd_text, created_at FROM ats_scans WHERE id = ?").bind(id).first();
+      if (!/^scan_(?:[a-f0-9]{14}|[a-f0-9]{32})$/i.test(id)) return json({ error: "scan not found" }, 404);
+      const row = await db.prepare("SELECT id, filename, score, report_json, created_at FROM ats_scans WHERE id = ?").bind(id).first();
       if (!row) return json({ error: "scan not found" }, 404);
-      return json({ id: row.id, filename: row.filename, score: row.score, report: JSON.parse(row.report_json || "{}"), resume_text: row.resume_text || "", jd_text: row.jd_text || "", created_at: row.created_at });
+      if (Number(row.created_at || 0) < Date.now() - 90 * 86400000) {
+        await db.prepare("DELETE FROM ats_scans WHERE id = ?").bind(id).run();
+        return json({ error: "scan not found" }, 404);
+      }
+      return json({ id: row.id, filename: row.filename, score: row.score, report: JSON.parse(row.report_json || "{}"), created_at: row.created_at });
     }
     if (req.method === "POST") {
       const b = await req.json().catch(() => ({}));
+      const report = b.report;
+      if (!report || typeof report !== "object" || !Array.isArray(report.groups)) return json({ error: "Invalid ATS report." }, 400);
+      const originalName = String(b.filename || "").toLowerCase();
+      const extension = originalName.endsWith(".pdf") ? ".pdf" : originalName.endsWith(".docx") ? ".docx" : originalName.endsWith(".txt") ? ".txt" : "";
+      const safeFilename = "Resume" + extension;
+      const scoreValue = Number(report.score);
+      const safeScore = Number.isFinite(scoreValue) ? Math.max(0, Math.min(100, scoreValue)) : 0;
+      const safeNumber = value => { const n = Number(value); return Number.isFinite(n) ? Math.max(0, Math.min(10000, Math.round(n))) : 0; };
+      const safePct = value => { const n = Number(value); return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 0; };
+      const safeReport = {
+        score: safeScore,
+        format_score: safePct(report.format_score),
+        content_score: safePct(report.content_score),
+        keyword_score: report.keyword_score == null ? null : safePct(report.keyword_score),
+        groups: report.groups.slice(0, 10).map(group => ({
+          name: String(group && group.name || "").slice(0, 80),
+          checks: (Array.isArray(group && group.checks) ? group.checks : []).slice(0, 40).map(check => ({
+            id: String(check && check.id || "").slice(0, 64),
+            title: String(check && check.title || "").slice(0, 120),
+            status: ["pass", "warn", "fail"].includes(check && check.status) ? check.status : "warn",
+            detail: String(check && check.detail || "").slice(0, 600)
+          }))
+        })),
+        total_checks: safeNumber(report.total_checks),
+        passed: safeNumber(report.passed),
+        warnings: safeNumber(report.warnings),
+        failed: safeNumber(report.failed),
+        keywords: report.keywords && typeof report.keywords === "object" ? {
+          have: (Array.isArray(report.keywords.have) ? report.keywords.have : []).slice(0, 30).map(value => String(value).slice(0, 80)),
+          missing: (Array.isArray(report.keywords.missing) ? report.keywords.missing : []).slice(0, 30).map(value => String(value).slice(0, 80)),
+          pct: safePct(report.keywords.pct),
+          total: safeNumber(report.keywords.total)
+        } : null,
+        meta: {
+          filename: safeFilename,
+          words: safeNumber(report.meta && report.meta.words),
+          bullets: safeNumber(report.meta && report.meta.bullets),
+          pages: safeNumber(report.meta && report.meta.pages),
+          scanned_at: String(report.meta && report.meta.scanned_at || "").slice(0, 40)
+        }
+      };
+      const reportJson = JSON.stringify(safeReport);
+      if (reportJson.length > 60000) return json({ error: "ATS report is too large." }, 413);
+      const ip = req.headers.get("cf-connecting-ip") || "0";
+      const rateKey = "q:ats-share:" + (await sha(ip)).slice(0, 20) + ":" + amsDay();
+      if ((await kvNum(env, rateKey)) >= 50) return json({ error: "Share report limit reached. You can still review your scan in this browser." }, 429);
+      await bump(env, rateKey, 86400);
       const s = await currentSession(req, env);
-      const id = "scan_" + crypto.randomUUID().replace(/-/g, "").slice(0, 14);
-      const report = b.report || {};
+      const id = "scan_" + crypto.randomUUID().replace(/-/g, "");
       await db.prepare("INSERT INTO ats_scans (id, sub, filename, score, report_json, resume_text, jd_text, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind(
-        id, s ? s.sub : null, String(b.filename || "Pasted Resume").slice(0, 120), Number(report.score || 0),
-        JSON.stringify(report).slice(0, 60000), String(b.resume_text || "").slice(0, 35000), String(b.jd_text || "").slice(0, 15000), Date.now()
+        id, s ? s.sub : null, safeFilename, safeScore,
+        reportJson, "", "", Date.now()
       ).run();
       try { track(req, "ats_scan", { obj: id, meta: String(report.score || 0) }); } catch {}
       return json({ ok: true, scan_id: id });
@@ -429,6 +524,7 @@ async function routeBuild1(p, req, env, url) {
     const s = await currentSession(req, env);
     if (!s) return json({ error: "Sign in to sync resumes to cloud.", code: "signin_required" }, 401);
     const db = await build1Db(env);
+    await cleanupResumes(db);
     if (req.method === "GET") {
       const rows = (await db.prepare("SELECT id, title, target_role, doc_json, theme_json, ats_score, updated_at, created_at FROM resumes WHERE sub = ? ORDER BY updated_at DESC LIMIT 50").bind(s.sub).all()).results || [];
       return json({ resumes: rows.map(r => ({ id: r.id, title: r.title, target_role: r.target_role, doc: JSON.parse(r.doc_json || "{}"), theme: JSON.parse(r.theme_json || "{}"), ats_score: r.ats_score || 0, updated_at: r.updated_at, created_at: r.created_at })) });

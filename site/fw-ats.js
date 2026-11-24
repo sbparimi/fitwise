@@ -73,15 +73,21 @@ function init(){
               '<span class="ck-ic">'+statusIcon(c.status)+'</span><div><b>'+FW.esc(c.title)+'</b><p>'+FW.esc(c.detail)+'</p></div></div>';
           }).join("") + '</div></div>';
       }).join("") +
-      '<div class="sharebar"><b class="small">Shareable link:</b><input type="text" id="shareUrl" readonly value="generating…">' +
-        '<button class="btn sm ghost" id="copyShare" type="button">Copy</button></div>';
+      '<div class="sharebar"><b class="small">Shareable link:</b><input type="text" id="shareUrl" readonly disabled placeholder="Saving report…">' +
+        '<button class="btn sm ghost" id="copyShare" type="button" disabled>Copy</button><span id="shareStatus" class="small" role="status">Saving report…</span></div>';
     FW.ring($("mainRing"), r.score, "out of 100");
+    var fixBtn = $("fixBtn");
+    if(fixBtn){
+      fixBtn.disabled = !state.text;
+      fixBtn.textContent = state.text ? "Fix in builder" : "Source resume is not included in this shared report";
+    }
 
     $("fixBtn").addEventListener("click", function(){
+      if(!state.text){ FW.toast("The source resume is not available from a shared report."); return; }
       var doc = FW.parseResume(state.text);
       var rec = {id: FW.store.newId(), title: (doc.name ? doc.name + " — " + (doc.role||"Resume") : "Imported resume"),
         doc: doc, theme: FW.emptyTheme(), ats_score: r.score};
-      FW.store.save(rec);
+      if(!FW.store.save(rec)){ FW.toast("Browser storage is unavailable or full. Free space or export a copy before continuing."); return; }
       try{ sessionStorage.setItem("fw_last_jd", jd.value||""); }catch(e){}
       location.href = "/builder?from=scan" + (state.scanId ? "&scan_id="+encodeURIComponent(state.scanId) : "");
     });
@@ -94,31 +100,41 @@ function init(){
       window.scrollTo({top:0,behavior:"smooth"});
     });
     $("copyShare").addEventListener("click", function(){
-      var i = $("shareUrl"); i.select();
+      var i = $("shareUrl");
+      if(!i || !i.value){ FW.toast("A share link is not available for this scan."); return; }
+      i.select();
       (navigator.clipboard ? navigator.clipboard.writeText(i.value) : Promise.reject())
         .then(function(){ FW.toast("Scan link copied"); }, function(){ FW.toast("Select the link and copy it"); });
     });
     rep.scrollIntoView({behavior:"smooth", block:"start"});
   }
 
+  function setShareLink(url, message){
+    var input = $("shareUrl"), button = $("copyShare"), status = $("shareStatus");
+    if(input){ input.value = url || ""; input.disabled = !url; }
+    if(button) button.disabled = !url;
+    if(status) status.textContent = message || (url ? "Link ready. Expires in 30 days." : "Share link unavailable. Your results remain in this browser.");
+  }
+
   function scan(){
     var text = (cv.value||"").trim();
     if(text.length < 60){ FW.toast("Paste your resume text, or drop a PDF/DOCX first"); cv.focus(); return; }
+    if(text.length > 50000){ FW.toast("Keep the resume under 50,000 characters for a reliable scan."); cv.focus(); return; }
     btn.classList.add("is-busy"); btn.innerHTML = '<span class="spin"></span> Scanning…';
     state.text = text;
     var r = FW.atsScan({text:text, jd:(jd.value||"").trim(), filename: state.filename});
     setTimeout(function(){
       btn.classList.remove("is-busy"); btn.textContent = "Scan my resume free";
       render(r);
-      FW.api("/api/ats/scan", {filename: state.filename, report: r, resume_text: text, jd_text: (jd.value||"").trim()})
+      FW.api("/api/ats/scan", {filename: state.filename, report: r})
         .then(function(j){
           if(j && j.scan_id){
             state.scanId = j.scan_id;
             var url = location.origin + "/ats-checker?scan_id=" + j.scan_id;
-            var sh = document.getElementById("shareUrl"); if(sh) sh.value = url;
+            setShareLink(url, "Link ready. Expires in 30 days.");
             history.replaceState(null, "", "/ats-checker?scan_id=" + j.scan_id);
-          } else { var s2 = document.getElementById("shareUrl"); if(s2) s2.value = location.origin + "/ats-checker"; }
-        }).catch(function(){ var s3 = document.getElementById("shareUrl"); if(s3) s3.value = location.origin + "/ats-checker"; });
+          } else setShareLink("", "Share link unavailable. Your scan results remain in this browser.");
+        }).catch(function(){ setShareLink("", "Share link unavailable. Your scan results remain in this browser."); });
     }, 320);
   }
   if(btn) btn.addEventListener("click", scan);
@@ -130,10 +146,10 @@ function init(){
     rep.classList.remove("hide"); idle.classList.add("hide");
     FW.api("/api/ats/scan?id=" + encodeURIComponent(sid)).then(function(j){
       if(j && j.report && j.report.groups){
-        state.filename = j.filename || "Shared scan"; state.text = j.resume_text || ""; state.scanId = sid;
-        cv.value = state.text; jd.value = j.jd_text || "";
+        state.filename = j.filename || "Shared scan"; state.text = ""; state.scanId = sid;
+        cv.value = ""; jd.value = "";
         render(j.report);
-        var sh = document.getElementById("shareUrl"); if(sh) sh.value = location.origin + "/ats-checker?scan_id=" + sid;
+        setShareLink(location.origin + "/ats-checker?scan_id=" + sid, "Link ready. Expires in 30 days.");
       } else {
         rep.classList.add("hide"); idle.classList.remove("hide");
         FW.toast("That scan link has expired — run a fresh scan");

@@ -13,4 +13,10 @@ for f in site/fw-core.js site/fw-templates.js site/fw-builder.js site/fw-ats.js 
   node --check "$f" || exit 1
 done
 echo "front-end scripts parse clean"
+node --test tests/*.test.mjs
+echo "front-end scripts parse clean"
 echo "built site/worker.mjs ($(wc -c < site/worker.mjs) bytes)"
+if [ "${VERCEL:-}" = "1" ]; then
+  rm -f site/worker.mjs site/worker.mjs.map
+  echo "removed Worker bundle from static Vercel output"
+fi
