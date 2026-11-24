@@ -552,6 +552,7 @@ FW.parseResume = function(text){
   var li=(source.match(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/[A-Za-z0-9\-_%]+/i)||[])[0]||"";
   var nameIndex=lines.findIndex(function(s){return /^[A-Z][A-Z .'-]{3,}$/.test(s)&&!/@|LINKEDIN|SUMMARY|EXPERIENCE|EDUCATION|SKILLS/.test(s);});
   doc.name=(nameIndex>=0?lines[nameIndex]:lines[0]).slice(0,70);
+  if(nameIndex>=0 && lines[nameIndex+1] && lines[nameIndex+1].length<150 && !/@|linkedin|\\+\\d/.test(lines[nameIndex+1])) doc.role=lines[nameIndex+1].slice(0,120);
   doc.email=email; doc.phone=phone.trim(); doc.linkedin=li;
   var loc=source.match(/\b(Amsterdam|Amstelveen|Utrecht|Rotterdam|The Hague|London|Berlin|Munich|Zurich|Vienna),?\s*(Netherlands|Germany|Belgium|Switzerland|Austria|United Kingdom|UK)?\b/i);
   doc.location=loc?loc[0]:"";
