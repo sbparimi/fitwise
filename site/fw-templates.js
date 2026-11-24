@@ -123,16 +123,16 @@ FW.TEMPLATES = [
    '.rz{font-family:"Georgia",serif;font-size:10.4pt}.rz .rz-name{letter-spacing:.02em}'+
    '.rz .rz-h{text-transform:none;font-size:11pt;letter-spacing:0;border-bottom:1px solid #C9CCDA;font-weight:700}'+
    '.rz .rz-role{font-style:italic;color:#3A3F55}'},
-  {slug:"europass-eu", name:"Europass EU", cat:["regional","ats"], blurb:"EU-standard tabular CV", layout:"classic", css:
+  {slug:"europass-eu", name:"Europass EU", cat:["regional","ats"], blurb:"Europass-inspired structured CV", layout:"classic", css:
    '.rz .rz-sec{display:grid;grid-template-columns:34mm 1fr;gap:6pt;border-top:1px solid #DCDFEA;padding-top:5pt}'+
    '.rz .rz-h{border:0;padding:0;margin:0;color:var(--rz-acc)}.rz .rz-sec>*:not(.rz-h){grid-column:2}'+
    '.rz .rz-name{font-size:19pt}.rz .rz-contact{border-bottom:2px solid var(--rz-acc);padding-bottom:7pt}'},
-  {slug:"dach-cv", name:"DACH Lebenslauf", cat:["regional","ats"], blurb:"German/Swiss tabular layout", layout:"classic", css:
+  {slug:"dach-cv", name:"DACH Lebenslauf", cat:["regional","ats"], blurb:"DACH-style tabular layout with dates left", layout:"classic", css:
    '.rz{font-family:"Arial",Helvetica,sans-serif}.rz .rz-name{font-size:18pt;text-transform:uppercase;letter-spacing:.06em}'+
    '.rz .rz-job-h{display:grid;grid-template-columns:32mm 1fr;align-items:start}'+
    '.rz .rz-when{order:-1;color:#15181F;font-weight:700}.rz .rz-h{background:#F1F2F7;padding:3pt 5pt;border:0;color:#15181F}'},
   /* ATS-first */
-  {slug:"ats-harvard", name:"Harvard Clean", cat:["ats"], blurb:"The safest parse of all 20", layout:"centered", css:
+  {slug:"ats-harvard", name:"Harvard Clean", cat:["ats"], blurb:"Simple single-column layout", layout:"centered", css:
    '.rz{font-family:"Inter",Arial,sans-serif}.rz .rz-center{text-align:center;border-bottom:1.5px solid #15181F;padding-bottom:7pt}'+
    '.rz .rz-center .rz-contact{justify-content:center;margin-bottom:0}.rz .rz-h{color:#15181F;border-bottom:1px solid #15181F}'},
   {slug:"tech-minimal", name:"Tech Minimal", cat:["ats","modern"], blurb:"Minimal type, dense signal", layout:"classic", css:
